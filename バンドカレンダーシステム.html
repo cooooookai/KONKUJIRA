@@ -709,6 +709,18 @@
                     <button class="btn btn-success" onclick="generateShareLink()">共有リンク生成</button>
                 </div>
                 
+                <div id="deleteSection" style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); border: 1px solid #ff4444; border-radius: 8px;">
+                    <h4 style="color: #ff4444; margin-bottom: 15px;">🗑️ 回答削除</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <button class="btn btn-info" onclick="toggleSelectMode()" id="selectModeBtn">選択モード</button>
+                        <button class="btn btn-success" onclick="selectAll()" id="selectAllBtn" style="display: none;">全選択</button>
+                        <button class="btn btn-info" onclick="selectNone()" id="selectNoneBtn" style="display: none;">選択解除</button>
+                        <button class="btn btn-danger" onclick="deleteSelected()" id="deleteSelectedBtn" style="display: none;">選択項目を削除</button>
+                        <button class="btn btn-info" onclick="cancelSelectMode()" id="cancelBtn" style="display: none;">キャンセル</button>
+                        <span id="selectedCount" style="color: #cccccc; margin-left: 10px; display: none;">選択: 0件</span>
+                    </div>
+                </div>
+                
                 <div id="shareSection" style="display: none; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); border: 1px solid #ff4444; border-radius: 8px;">
                     <h4 style="color: #ff4444; margin-bottom: 10px;">📱 デバイス間共有</h4>
                     <p style="color: #cccccc; margin-bottom: 10px;">このリンクを他のデバイスで開くと、現在のデータが同期されます：</p>
@@ -1035,6 +1047,10 @@
             alert('期間が更新されました');
         }
         
+        // 選択モード状態
+        let selectMode = false;
+        let selectedResponses = new Set();
+        
         // 結果画面生成
         function generateResultsPanel() {
             const resultsList = document.getElementById('resultsList');
@@ -1044,9 +1060,17 @@
                 return;
             }
             
-            resultsList.innerHTML = scheduleData.responses.map(response => `
-                <div class="result-item">
-                    <div class="result-name">${response.name}</div>
+            resultsList.innerHTML = scheduleData.responses.map((response, index) => `
+                <div class="result-item" data-index="${index}">
+                    ${selectMode ? `
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <input type="checkbox" id="checkbox-${index}" onchange="updateSelection(${index})" 
+                                   style="margin-right: 10px; transform: scale(1.2);">
+                            <label for="checkbox-${index}" style="color: #ff4444; font-weight: bold; font-size: 1.1em; cursor: pointer;">${response.name}</label>
+                        </div>
+                    ` : `
+                        <div class="result-name">${response.name}</div>
+                    `}
                     <div class="result-summary">
                         ${Object.entries(response.selections).map(([date, status]) => `
                             <div class="result-date result-${status}">
@@ -1135,6 +1159,113 @@
             a.download = `band-calendar-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
+        }
+        
+        // 選択モード切り替え
+        function toggleSelectMode() {
+            selectMode = !selectMode;
+            selectedResponses.clear();
+            
+            if (selectMode) {
+                document.getElementById('selectModeBtn').style.display = 'none';
+                document.getElementById('selectAllBtn').style.display = 'inline-block';
+                document.getElementById('selectNoneBtn').style.display = 'inline-block';
+                document.getElementById('deleteSelectedBtn').style.display = 'inline-block';
+                document.getElementById('cancelBtn').style.display = 'inline-block';
+                document.getElementById('selectedCount').style.display = 'inline-block';
+            } else {
+                document.getElementById('selectModeBtn').style.display = 'inline-block';
+                document.getElementById('selectAllBtn').style.display = 'none';
+                document.getElementById('selectNoneBtn').style.display = 'none';
+                document.getElementById('deleteSelectedBtn').style.display = 'none';
+                document.getElementById('cancelBtn').style.display = 'none';
+                document.getElementById('selectedCount').style.display = 'none';
+            }
+            
+            generateResultsPanel();
+            updateSelectedCount();
+        }
+        
+        // 選択モードキャンセル
+        function cancelSelectMode() {
+            selectMode = false;
+            selectedResponses.clear();
+            toggleSelectMode();
+        }
+        
+        // 選択状態更新
+        function updateSelection(index) {
+            const checkbox = document.getElementById(`checkbox-${index}`);
+            if (checkbox.checked) {
+                selectedResponses.add(index);
+            } else {
+                selectedResponses.delete(index);
+            }
+            updateSelectedCount();
+        }
+        
+        // 選択数表示更新
+        function updateSelectedCount() {
+            const count = selectedResponses.size;
+            document.getElementById('selectedCount').textContent = `選択: ${count}件`;
+            
+            // 削除ボタンの有効/無効
+            const deleteBtn = document.getElementById('deleteSelectedBtn');
+            deleteBtn.disabled = count === 0;
+            deleteBtn.style.opacity = count === 0 ? '0.5' : '1';
+        }
+        
+        // 全選択
+        function selectAll() {
+            selectedResponses.clear();
+            for (let i = 0; i < scheduleData.responses.length; i++) {
+                selectedResponses.add(i);
+                const checkbox = document.getElementById(`checkbox-${i}`);
+                if (checkbox) checkbox.checked = true;
+            }
+            updateSelectedCount();
+        }
+        
+        // 選択解除
+        function selectNone() {
+            selectedResponses.clear();
+            for (let i = 0; i < scheduleData.responses.length; i++) {
+                const checkbox = document.getElementById(`checkbox-${i}`);
+                if (checkbox) checkbox.checked = false;
+            }
+            updateSelectedCount();
+        }
+        
+        // 選択項目削除
+        function deleteSelected() {
+            if (selectedResponses.size === 0) {
+                alert('削除する項目を選択してください');
+                return;
+            }
+            
+            const count = selectedResponses.size;
+            const names = Array.from(selectedResponses).map(index => scheduleData.responses[index].name).join('、');
+            
+            if (confirm(`以下の${count}件の回答を削除しますか？\n\n${names}\n\nこの操作は取り消せません。`)) {
+                // インデックスを降順でソートして削除（配列のインデックスがずれないように）
+                const sortedIndices = Array.from(selectedResponses).sort((a, b) => b - a);
+                
+                sortedIndices.forEach(index => {
+                    scheduleData.responses.splice(index, 1);
+                });
+                
+                saveData();
+                selectedResponses.clear();
+                generateResultsPanel();
+                updateSelectedCount();
+                
+                alert(`${count}件の回答が削除されました`);
+                
+                // 削除後に選択モードを終了
+                if (scheduleData.responses.length === 0) {
+                    cancelSelectMode();
+                }
+            }
         }
         
         // 全データクリア
