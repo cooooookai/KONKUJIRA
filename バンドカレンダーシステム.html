@@ -13,9 +13,9 @@
         
         body {
             font-family: 'Yu Gothic', 'Hiragino Sans', sans-serif;
-            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
             min-height: 100vh;
-            color: #333;
+            color: #ffffff;
             padding: 10px;
         }
         
@@ -25,55 +25,59 @@
         }
         
         .header {
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ff4444;
             border-radius: 15px;
             padding: 25px;
             text-align: center;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 40px rgba(255, 68, 68, 0.3);
         }
         
         .title {
-            color: #1e40af;
+            color: #ff4444;
             font-size: 2.2em;
             font-weight: bold;
             margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
         }
         
         .subtitle {
-            color: #666;
+            color: #cccccc;
             font-size: 1.1em;
         }
         
         .nav-tabs {
             display: flex;
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid #ff4444;
             border-radius: 10px;
             margin-bottom: 20px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(255, 68, 68, 0.2);
         }
         
         .nav-tab {
             flex: 1;
             padding: 15px;
             text-align: center;
-            background: #f8f9fa;
+            background: transparent;
             border: none;
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
             transition: all 0.3s;
+            color: #cccccc;
         }
         
         .nav-tab.active {
-            background: #1e40af;
-            color: white;
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+            color: #ffffff;
         }
         
         .nav-tab:hover {
-            background: #3b82f6;
-            color: white;
+            background: linear-gradient(135deg, #cc3333 0%, #ff4444 100%);
+            color: #ffffff;
         }
         
         .tab-content {
@@ -85,38 +89,43 @@
         }
         
         .user-info {
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid #ff4444;
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(255, 68, 68, 0.2);
         }
         
         .name-input {
             width: 100%;
             max-width: 300px;
             padding: 12px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #ff4444;
             border-radius: 8px;
             font-size: 16px;
             margin-bottom: 15px;
+            background: #2d2d2d;
+            color: #ffffff;
         }
         
         .name-input:focus {
             outline: none;
-            border-color: #1e40af;
+            border-color: #ff6666;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
         }
         
         .instructions {
-            background: #e3f2fd;
-            border-left: 5px solid #2196f3;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            border-left: 5px solid #ff4444;
             padding: 15px;
             border-radius: 0 8px 8px 0;
             margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.2);
         }
         
         .instructions h3 {
-            color: #1565c0;
+            color: #ff4444;
             margin-bottom: 10px;
         }
         
@@ -137,7 +146,7 @@
             display: inline-block;
             width: 35px;
             height: 35px;
-            border: 2px solid #333;
+            border: 2px solid #666666;
             border-radius: 50%;
             line-height: 31px;
             text-align: center;
@@ -146,42 +155,62 @@
             margin-bottom: 8px;
             cursor: pointer;
             transition: all 0.3s;
+            background: #1a1a1a;
+            color: #ffffff;
         }
         
-        .symbol.good { background: #48bb78; color: white; border-color: #48bb78; }
-        .symbol.ok { background: #ed8936; color: white; border-color: #ed8936; }
-        .symbol.bad { background: #e53e3e; color: white; border-color: #e53e3e; }
+        .symbol.good { 
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); 
+            color: #000000; 
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+        .symbol.ok { 
+            background: linear-gradient(135deg, #666666 0%, #888888 100%); 
+            color: #ffffff; 
+            border-color: #888888;
+            box-shadow: 0 0 15px rgba(136, 136, 136, 0.4);
+        }
+        .symbol.bad { 
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%); 
+            color: #ffffff; 
+            border-color: #ff6666;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+        }
         
         .calendar-section {
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ff4444;
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 40px rgba(255, 68, 68, 0.3);
         }
         
         .month-title {
-            color: #1e40af;
+            color: #ff4444;
             font-size: 1.5em;
             font-weight: bold;
             margin-bottom: 20px;
             text-align: center;
             padding-bottom: 15px;
-            border-bottom: 3px solid #1e40af;
+            border-bottom: 3px solid #ff4444;
+            text-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
         }
         
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 2px;
-            background: #e2e8f0;
+            background: #000000;
             border-radius: 8px;
             overflow: hidden;
+            border: 1px solid #ff4444;
         }
         
         .calendar-header {
-            background: #1e40af;
-            color: white;
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+            color: #ffffff;
             padding: 12px 8px;
             text-align: center;
             font-weight: bold;
@@ -189,36 +218,39 @@
         }
         
         .calendar-day {
-            background: #f7fafc;
+            background: #2d2d2d;
             padding: 8px;
             min-height: 90px;
             position: relative;
             transition: all 0.3s ease;
             cursor: pointer;
+            border: 1px solid #404040;
         }
         
         .calendar-day:hover {
-            background: #edf2f7;
+            background: #3d3d3d;
             transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.2);
         }
         
         .calendar-day.selectable {
-            background: #dbeafe;
-            border: 2px dashed #3b82f6;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            border: 2px dashed #ff4444;
         }
         
         .calendar-day.selectable:hover {
-            background: #bfdbfe;
+            background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+            box-shadow: 0 5px 20px rgba(255, 68, 68, 0.3);
         }
         
         .calendar-day.other-month {
-            background: #f1f5f9;
-            color: #a0aec0;
+            background: #1a1a1a;
+            color: #666;
         }
         
         .calendar-day.fixed-event {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+            background: linear-gradient(135deg, #3d3d3d 0%, #4d4d4d 100%);
+            border: 2px solid #ff4444;
         }
         
         .date-number {
@@ -226,21 +258,24 @@
             font-size: 1.1em;
             margin-bottom: 4px;
             text-align: center;
+            color: #ffffff;
         }
         
         .event-label {
-            background: #075985;
-            color: white;
+            background: linear-gradient(135deg, #666666 0%, #888888 100%);
+            color: #ffffff;
             padding: 2px 4px;
             border-radius: 3px;
             font-size: 0.7em;
             text-align: center;
             line-height: 1.2;
             margin: 2px 0;
+            font-weight: bold;
         }
         
         .event-label.fixed {
-            background: #d69e2e;
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+            color: #ffffff;
         }
         
         .status-marker {
@@ -249,9 +284,9 @@
             right: 5px;
             width: 25px;
             height: 25px;
-            border: 2px solid #333;
+            border: 2px solid #666666;
             border-radius: 50%;
-            background: white;
+            background: #1a1a1a;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -260,41 +295,47 @@
             cursor: pointer;
             transition: all 0.3s;
             z-index: 10;
+            color: #ffffff;
         }
         
         .status-marker:hover {
             transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
         }
         
         .status-marker.selected-good {
-            background: #48bb78;
-            color: white;
-            border-color: #48bb78;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            color: #000000;
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
         }
         
         .status-marker.selected-ok {
-            background: #ed8936;
-            color: white;
-            border-color: #ed8936;
+            background: linear-gradient(135deg, #666666 0%, #888888 100%);
+            color: #ffffff;
+            border-color: #888888;
+            box-shadow: 0 0 15px rgba(136, 136, 136, 0.6);
         }
         
         .status-marker.selected-bad {
-            background: #e53e3e;
-            color: white;
-            border-color: #e53e3e;
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+            color: #ffffff;
+            border-color: #ff6666;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
         }
         
         .submit-section {
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid #ff4444;
             border-radius: 10px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(255, 68, 68, 0.2);
         }
         
         .submit-btn {
-            background: #1e40af;
-            color: white;
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+            color: #ffffff;
             border: none;
             padding: 15px 40px;
             border-radius: 8px;
@@ -302,36 +343,40 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3);
         }
         
         .submit-btn:hover {
-            background: #1d4ed8;
+            background: linear-gradient(135deg, #ff6666 0%, #ff8888 100%);
             transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 68, 68, 0.4);
         }
         
         .submit-btn:disabled {
-            background: #9ca3af;
+            background: #666;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
         
         .admin-panel {
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ff4444;
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 40px rgba(255, 68, 68, 0.3);
         }
         
         .admin-section {
             margin: 25px 0;
             padding: 20px;
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
             border-radius: 10px;
-            border: 2px dashed #6c757d;
+            border: 2px dashed #ff4444;
         }
         
         .admin-title {
-            color: #495057;
+            color: #ff4444;
             font-weight: bold;
             margin-bottom: 15px;
             font-size: 1.2em;
@@ -349,8 +394,16 @@
             flex: 1;
             min-width: 150px;
             padding: 8px;
-            border: 1px solid #ced4da;
+            border: 1px solid #666666;
             border-radius: 4px;
+            background: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #ff4444;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
         }
         
         .btn {
@@ -362,26 +415,39 @@
             transition: all 0.3s;
         }
         
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-info { background: #17a2b8; color: white; }
+        .btn-primary { 
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%); 
+            color: #ffffff; 
+        }
+        .btn-success { 
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); 
+            color: #000000; 
+        }
+        .btn-danger { 
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%); 
+            color: #ffffff; 
+        }
+        .btn-info { 
+            background: linear-gradient(135deg, #666666 0%, #888888 100%); 
+            color: #ffffff; 
+        }
         
         .btn:hover {
             transform: translateY(-1px);
-            opacity: 0.9;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         
         .results-panel {
-            background: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #ff4444;
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 40px rgba(255, 68, 68, 0.3);
         }
         
         .result-item {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            border: 1px solid #666666;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
@@ -389,7 +455,7 @@
         
         .result-name {
             font-weight: bold;
-            color: #1e40af;
+            color: #ff4444;
             font-size: 1.1em;
             margin-bottom: 10px;
         }
@@ -408,9 +474,18 @@
             font-weight: 500;
         }
         
-        .result-good { background: #d4edda; color: #155724; }
-        .result-ok { background: #fff3cd; color: #856404; }
-        .result-bad { background: #f8d7da; color: #721c24; }
+        .result-good { 
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); 
+            color: #000000; 
+        }
+        .result-ok { 
+            background: linear-gradient(135deg, #666666 0%, #888888 100%); 
+            color: #ffffff; 
+        }
+        .result-bad { 
+            background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%); 
+            color: #ffffff; 
+        }
         
         @media (max-width: 768px) {
             .container {
@@ -455,7 +530,7 @@
     <div class="container">
         <div class="header">
             <div class="title">🎵 バンドスケジュールカレンダー</div>
-            <div class="subtitle">練習日程調整システム</div>
+            <div class="subtitle">練習日程調整システム - プレミアム</div>
         </div>
         
         <div class="nav-tabs">
@@ -467,7 +542,7 @@
         <!-- カレンダー入力タブ -->
         <div id="calendar" class="tab-content active">
             <div class="user-info">
-                <label for="userName" style="font-weight: bold; color: #1e40af; display: block; margin-bottom: 8px;">名前を入力してください：</label>
+                <label for="userName" style="font-weight: bold; color: #ff4444; display: block; margin-bottom: 8px;">名前を入力してください：</label>
                 <input type="text" id="userName" class="name-input" placeholder="お名前を入力" />
             </div>
             
@@ -502,7 +577,7 @@
         <!-- 管理タブ -->
         <div id="admin" class="tab-content">
             <div class="admin-panel">
-                <h2 style="color: #1e40af; margin-bottom: 25px;">⚙️ システム管理</h2>
+                <h2 style="color: #ff4444; margin-bottom: 25px;">⚙️ システム管理</h2>
                 
                 <div class="admin-section">
                     <div class="admin-title">📅 確定イベント管理</div>
@@ -539,7 +614,7 @@
         <!-- 結果タブ -->
         <div id="results" class="tab-content">
             <div class="results-panel">
-                <h2 style="color: #1e40af; margin-bottom: 25px;">📊 回答結果</h2>
+                <h2 style="color: #ff4444; margin-bottom: 25px;">📊 回答結果</h2>
                 
                 <div style="margin-bottom: 20px;">
                     <button class="btn btn-info" onclick="exportResults()">結果エクスポート</button>
@@ -550,7 +625,7 @@
                 <div id="resultsList"></div>
                 
                 <div id="summarySection" style="display: none; margin-top: 30px;">
-                    <h3 style="color: #1e40af;">📈 日程サマリー</h3>
+                    <h3 style="color: #ff4444;">📈 日程サマリー</h3>
                     <div id="summaryContent"></div>
                 </div>
             </div>
@@ -625,10 +700,12 @@
         
         // 月別カレンダー生成
         function generateMonthCalendar(year, month) {
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startOfWeek = new Date(firstDay);
-            startOfWeek.setDate(firstDay.getDate() - firstDay.getDay());
+            // 時間を正午に設定して時区問題を避ける
+            const firstDay = new Date(year, month, 1, 12, 0, 0);
+            const lastDay = new Date(year, month + 1, 0, 12, 0, 0);
+            
+            // 月の最初の日から、その週の日曜日まで戻る
+            const startOfWeek = new Date(year, month, 1 - firstDay.getDay(), 12, 0, 0);
             
             let html = `
                 <div class="calendar-section">
@@ -644,11 +721,16 @@
             `;
             
             // カレンダーの日付を生成
-            let currentDate = new Date(startOfWeek);
+            let currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate(), 12, 0, 0);
             
             for (let week = 0; week < 6; week++) {
                 for (let day = 0; day < 7; day++) {
-                    const dateStr = currentDate.toISOString().split('T')[0];
+                    // 日付文字列を正確に生成
+                    const dateYear = currentDate.getFullYear();
+                    const dateMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+                    const dateDay = String(currentDate.getDate()).padStart(2, '0');
+                    const dateStr = `${dateYear}-${dateMonth}-${dateDay}`;
+                    
                     const isCurrentMonth = currentDate.getMonth() === month;
                     const isSelectable = isCurrentMonth && isDateSelectable(dateStr);
                     const fixedEvent = scheduleData.fixedEvents.find(e => e.date === dateStr);
@@ -670,7 +752,8 @@
                     
                     html += '</div>';
                     
-                    currentDate.setDate(currentDate.getDate() + 1);
+                    // 次の日に進む
+                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1, 12, 0, 0);
                 }
                 
                 // 月が変わったら終了
@@ -683,9 +766,10 @@
         
         // 日付が選択可能かチェック
         function isDateSelectable(dateStr) {
-            const date = new Date(dateStr);
-            const start = new Date(scheduleData.period.start);
-            const end = new Date(scheduleData.period.end);
+            // 時区問題を避けるため、正午の時間で比較
+            const date = new Date(dateStr + 'T12:00:00');
+            const start = new Date(scheduleData.period.start + 'T12:00:00');
+            const end = new Date(scheduleData.period.end + 'T12:00:00');
             
             return date >= start && date <= end && 
                    !scheduleData.fixedEvents.some(e => e.date === dateStr);
@@ -843,7 +927,7 @@
             const resultsList = document.getElementById('resultsList');
             
             if (scheduleData.responses.length === 0) {
-                resultsList.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">まだ回答がありません</p>';
+                resultsList.innerHTML = '<p style="text-align: center; color: #cccccc; padding: 40px;">まだ回答がありません</p>';
                 return;
             }
             
@@ -857,7 +941,7 @@
                             </div>
                         `).join('')}
                     </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 10px;">
+                    <div style="font-size: 12px; color: #cccccc; margin-top: 10px;">
                         送信: ${new Date(response.timestamp).toLocaleString('ja-JP')}
                     </div>
                 </div>
@@ -884,14 +968,14 @@
             
             summaryContent.innerHTML = `
                 <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px; background: #2d2d2d; border: 1px solid #ff4444;">
                         <thead>
-                            <tr style="background: #f8f9fa;">
-                                <th style="border: 1px solid #ddd; padding: 10px;">日付</th>
-                                <th style="border: 1px solid #ddd; padding: 10px; background: #d4edda;">希望</th>
-                                <th style="border: 1px solid #ddd; padding: 10px; background: #fff3cd;">可能</th>
-                                <th style="border: 1px solid #ddd; padding: 10px; background: #f8d7da;">不可</th>
-                                <th style="border: 1px solid #ddd; padding: 10px;">合計</th>
+                            <tr style="background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);">
+                                <th style="border: 1px solid #ff4444; padding: 10px; color: #ffffff;">日付</th>
+                                <th style="border: 1px solid #ff4444; padding: 10px; color: #ffffff;">希望</th>
+                                <th style="border: 1px solid #ff4444; padding: 10px; color: #ffffff;">可能</th>
+                                <th style="border: 1px solid #ff4444; padding: 10px; color: #ffffff;">不可</th>
+                                <th style="border: 1px solid #ff4444; padding: 10px; color: #ffffff;">合計</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -900,11 +984,11 @@
                                 const total = summary.good + summary.ok + summary.bad;
                                 return `
                                     <tr>
-                                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: bold;">${formatDateWithDay(date)}</td>
-                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; background: #d4edda;">${summary.good}</td>
-                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; background: #fff3cd;">${summary.ok}</td>
-                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; background: #f8d7da;">${summary.bad}</td>
-                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">${total}</td>
+                                        <td style="border: 1px solid #ff4444; padding: 10px; font-weight: bold; color: #ffffff;">${formatDateWithDay(date)}</td>
+                                        <td style="border: 1px solid #ff4444; padding: 10px; text-align: center; background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); color: #000000;">${summary.good}</td>
+                                        <td style="border: 1px solid #ff4444; padding: 10px; text-align: center; background: linear-gradient(135deg, #666666 0%, #888888 100%); color: #ffffff;">${summary.ok}</td>
+                                        <td style="border: 1px solid #ff4444; padding: 10px; text-align: center; background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%); color: #ffffff;">${summary.bad}</td>
+                                        <td style="border: 1px solid #ff4444; padding: 10px; text-align: center; font-weight: bold; color: #ffffff;">${total}</td>
                                     </tr>
                                 `;
                             }).join('')}
