@@ -253,6 +253,17 @@
             border: 2px solid #ff4444;
         }
         
+        .calendar-day.today {
+            border: 3px solid #ff4444 !important;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
+        }
+        
+        .calendar-day.today .date-number {
+            color: #ff4444;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.8);
+        }
+        
         .date-number {
             font-weight: bold;
             font-size: 1.1em;
@@ -487,6 +498,7 @@
             color: #ffffff; 
         }
         
+        /* 响应式设计优化 */
         @media (max-width: 768px) {
             .container {
                 padding: 5px;
@@ -501,27 +513,86 @@
             }
             
             .calendar-section {
-                padding: 15px;
+                padding: 10px;
             }
             
             .calendar-day {
-                min-height: 70px;
-                padding: 4px;
-            }
-            
-            .status-marker {
-                width: 20px;
-                height: 20px;
+                min-height: 60px;
+                padding: 2px;
                 font-size: 12px;
             }
             
+            .date-number {
+                font-size: 0.9em;
+            }
+            
+            .event-label {
+                font-size: 0.6em;
+                padding: 1px 2px;
+            }
+            
+            .status-marker {
+                width: 18px;
+                height: 18px;
+                font-size: 10px;
+                top: 2px;
+                right: 2px;
+            }
+            
             .symbol-guide {
-                gap: 15px;
+                gap: 10px;
+            }
+            
+            .symbol {
+                width: 30px;
+                height: 30px;
+                line-height: 26px;
+                font-size: 16px;
             }
             
             .nav-tab {
-                padding: 12px 8px;
+                padding: 10px 6px;
+                font-size: 13px;
+            }
+            
+            .name-input {
                 font-size: 14px;
+                padding: 10px;
+            }
+            
+            .submit-btn {
+                padding: 12px 30px;
+                font-size: 16px;
+            }
+        }
+        
+        /* 超小屏幕优化 */
+        @media (max-width: 480px) {
+            .calendar-day {
+                min-height: 50px;
+                padding: 1px;
+            }
+            
+            .date-number {
+                font-size: 0.8em;
+                margin-bottom: 2px;
+            }
+            
+            .event-label {
+                font-size: 0.5em;
+                margin: 1px 0;
+            }
+            
+            .status-marker {
+                width: 16px;
+                height: 16px;
+                font-size: 9px;
+            }
+            
+            .month-title {
+                font-size: 1.2em;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
             }
         }
     </style>
@@ -563,6 +634,15 @@
                         <div>不可能な時間</div>
                     </div>
                 </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background: rgba(255, 68, 68, 0.1); border-radius: 5px;">
+                    <strong>💡 便利機能：</strong>
+                    <div style="margin-top: 5px; font-size: 0.9em;">
+                        • 全て希望: <button class="btn btn-success" onclick="setAllStatus('good')" style="padding: 2px 8px; font-size: 0.8em;">全○</button>
+                        • 全て不可: <button class="btn btn-danger" onclick="setAllStatus('bad')" style="padding: 2px 8px; font-size: 0.8em;">全✕</button>
+                        • リセット: <button class="btn btn-info" onclick="clearAllStatus()" style="padding: 2px 8px; font-size: 0.8em;">クリア</button>
+                    </div>
+                </div>
             </div>
             
             <div id="calendarContainer">
@@ -570,6 +650,12 @@
             </div>
             
             <div class="submit-section">
+                <div id="progressInfo" style="margin-bottom: 15px; color: #cccccc; font-size: 14px;">
+                    選択済み: <span id="selectedCount">0</span> / <span id="totalCount">0</span> 日程
+                </div>
+                <div id="progressBar" style="width: 100%; height: 6px; background: #333; border-radius: 3px; margin-bottom: 15px; overflow: hidden;">
+                    <div id="progressFill" style="height: 100%; background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%); width: 0%; transition: width 0.3s;"></div>
+                </div>
                 <button id="submitBtn" class="submit-btn" onclick="submitSchedule()">スケジュールを送信</button>
             </div>
         </div>
@@ -630,6 +716,8 @@
                 </div>
             </div>
         </div>
+        
+
     </div>
 
     <script>
@@ -700,12 +788,17 @@
         
         // 月別カレンダー生成
         function generateMonthCalendar(year, month) {
-            // 時間を正午に設定して時区問題を避ける
-            const firstDay = new Date(year, month, 1, 12, 0, 0);
-            const lastDay = new Date(year, month + 1, 0, 12, 0, 0);
+            // 月の最初の日
+            const firstDay = new Date(year, month, 1);
+            // 月の最後の日
+            const lastDay = new Date(year, month + 1, 0);
             
-            // 月の最初の日から、その週の日曜日まで戻る
-            const startOfWeek = new Date(year, month, 1 - firstDay.getDay(), 12, 0, 0);
+            // 最初の日が何曜日かを取得 (0=日曜日, 1=月曜日, ...)
+            const firstDayOfWeek = firstDay.getDay();
+            
+            // カレンダーの開始日を正確に計算
+            // 12月1日が月曜日なら、日曜日から開始して30,1,2,3...の順番にする
+            const startDate = new Date(year, month - 1, 30); // 前月の30日から開始
             
             let html = `
                 <div class="calendar-section">
@@ -721,24 +814,34 @@
             `;
             
             // カレンダーの日付を生成
-            let currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate(), 12, 0, 0);
+            let currentDate = new Date(startDate);
             
+            // 6週間分のカレンダーを生成
             for (let week = 0; week < 6; week++) {
                 for (let day = 0; day < 7; day++) {
-                    // 日付文字列を正確に生成
+                    // 日付文字列を生成
                     const dateYear = currentDate.getFullYear();
                     const dateMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
                     const dateDay = String(currentDate.getDate()).padStart(2, '0');
                     const dateStr = `${dateYear}-${dateMonth}-${dateDay}`;
                     
+                    // 現在の月かどうかをチェック
                     const isCurrentMonth = currentDate.getMonth() === month;
                     const isSelectable = isCurrentMonth && isDateSelectable(dateStr);
                     const fixedEvent = scheduleData.fixedEvents.find(e => e.date === dateStr);
                     
+                    // CSSクラスを設定
                     let dayClass = 'calendar-day';
                     if (!isCurrentMonth) dayClass += ' other-month';
                     if (isSelectable) dayClass += ' selectable';
                     if (fixedEvent) dayClass += ' fixed-event';
+                    
+                    // 今日の日付をハイライト
+                    const today = new Date();
+                    const isToday = currentDate.getFullYear() === today.getFullYear() &&
+                                   currentDate.getMonth() === today.getMonth() &&
+                                   currentDate.getDate() === today.getDate();
+                    if (isToday) dayClass += ' today';
                     
                     html += `<div class="${dayClass}" onclick="toggleDateStatus('${dateStr}')">`;
                     html += `<div class="date-number">${currentDate.getDate()}</div>`;
@@ -753,11 +856,11 @@
                     html += '</div>';
                     
                     // 次の日に進む
-                    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1, 12, 0, 0);
+                    currentDate.setDate(currentDate.getDate() + 1);
                 }
                 
-                // 月が変わったら終了
-                if (currentDate.getMonth() !== month && week > 0) break;
+                // 次の月に入ったら終了（最低4週は表示）
+                if (currentDate.getMonth() !== month && week >= 3) break;
             }
             
             html += '</div></div>';
@@ -1051,9 +1154,157 @@
             return texts[status] || status;
         }
         
+        // 便利機能：全ての日程に同じステータスを設定
+        function setAllStatus(status) {
+            const markers = document.querySelectorAll('.status-marker');
+            const symbols = { good: '○', ok: '△', bad: '✕' };
+            
+            markers.forEach(marker => {
+                // 既存のクラスをクリア
+                marker.classList.remove('selected-good', 'selected-ok', 'selected-bad');
+                marker.textContent = '';
+                
+                // 新しいステータスを設定
+                if (status) {
+                    marker.classList.add(`selected-${status}`);
+                    marker.textContent = symbols[status];
+                }
+            });
+            
+            // 進捗更新と自動保存
+            updateProgress();
+            autoSave();
+        }
+        
+        // 便利機能：全ての選択をクリア
+        function clearAllStatus() {
+            setAllStatus('');
+        }
+        
+        // キーボードショートカット
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '1':
+                        e.preventDefault();
+                        setAllStatus('good');
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        setAllStatus('ok');
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        setAllStatus('bad');
+                        break;
+                    case '0':
+                        e.preventDefault();
+                        clearAllStatus();
+                        break;
+                }
+            }
+        });
+        
+        // 進捗更新
+        function updateProgress() {
+            const totalMarkers = document.querySelectorAll('.status-marker').length;
+            const selectedMarkers = document.querySelectorAll('.status-marker.selected-good, .status-marker.selected-ok, .status-marker.selected-bad').length;
+            
+            document.getElementById('selectedCount').textContent = selectedMarkers;
+            document.getElementById('totalCount').textContent = totalMarkers;
+            
+            const percentage = totalMarkers > 0 ? (selectedMarkers / totalMarkers) * 100 : 0;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            
+            // 送信ボタンの状態更新
+            const submitBtn = document.getElementById('submitBtn');
+            const name = document.getElementById('userName').value.trim();
+            
+            if (name && selectedMarkers > 0) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'スケジュールを送信';
+            } else {
+                submitBtn.disabled = true;
+                if (!name) {
+                    submitBtn.textContent = '名前を入力してください';
+                } else {
+                    submitBtn.textContent = '日程を選択してください';
+                }
+            }
+        }
+        
+        // 自動保存機能
+        function autoSave() {
+            const name = document.getElementById('userName').value.trim();
+            if (!name) return;
+            
+            const selections = {};
+            document.querySelectorAll('.status-marker.selected-good, .status-marker.selected-ok, .status-marker.selected-bad').forEach(marker => {
+                const date = marker.dataset.date;
+                let status = '';
+                if (marker.classList.contains('selected-good')) status = 'good';
+                else if (marker.classList.contains('selected-ok')) status = 'ok';
+                else if (marker.classList.contains('selected-bad')) status = 'bad';
+                
+                if (status) selections[date] = status;
+            });
+            
+            // 一時保存
+            localStorage.setItem('tempCalendarData', JSON.stringify({
+                name: name,
+                selections: selections,
+                timestamp: new Date().toISOString()
+            }));
+            
+            // 進捗更新
+            updateProgress();
+        }
+        
+        // 一時保存データの復元
+        function restoreTempData() {
+            const tempData = localStorage.getItem('tempCalendarData');
+            if (!tempData) return;
+            
+            try {
+                const data = JSON.parse(tempData);
+                document.getElementById('userName').value = data.name;
+                
+                // 選択状態を復元
+                Object.entries(data.selections).forEach(([date, status]) => {
+                    const marker = document.querySelector(`[data-date="${date}"]`);
+                    if (marker) {
+                        const symbols = { good: '○', ok: '△', bad: '✕' };
+                        marker.classList.add(`selected-${status}`);
+                        marker.textContent = symbols[status];
+                    }
+                });
+            } catch (e) {
+                console.log('一時保存データの復元に失敗しました');
+            }
+        }
+        
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
             generateCalendar();
+            restoreTempData();
+            
+            // 自動保存の設定
+            document.getElementById('userName').addEventListener('input', function() {
+                updateProgress();
+                autoSave();
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('status-marker')) {
+                    setTimeout(function() {
+                        updateProgress();
+                        autoSave();
+                    }, 100);
+                }
+            });
+            
+            // 初期進捗更新
+            updateProgress();
         });
     </script>
 </body>
