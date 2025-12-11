@@ -602,6 +602,9 @@
         <div class="header">
             <div class="title">🎵 バンドスケジュールカレンダー</div>
             <div class="subtitle">練習日程調整システム - プレミアム</div>
+            <div id="syncStatus" style="margin-top: 10px; font-size: 0.9em; color: #cccccc;">
+                <span id="syncIcon">🔄</span> <span id="syncText">同期準備中...</span>
+            </div>
         </div>
         
         <div class="nav-tabs">
@@ -707,6 +710,7 @@
                     <button class="btn btn-primary" onclick="showSummary()">サマリー表示</button>
                     <button class="btn btn-success" onclick="refreshResults()">更新</button>
                     <button class="btn btn-success" onclick="generateShareLink()">共有リンク生成</button>
+                    <button class="btn btn-info" onclick="showImportSection()">データインポート</button>
                 </div>
                 
                 <div id="deleteSection" style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); border: 1px solid #ff4444; border-radius: 8px;">
@@ -724,9 +728,25 @@
                 <div id="shareSection" style="display: none; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); border: 1px solid #ff4444; border-radius: 8px;">
                     <h4 style="color: #ff4444; margin-bottom: 10px;">📱 デバイス間共有</h4>
                     <p style="color: #cccccc; margin-bottom: 10px;">このリンクを他のデバイスで開くと、現在のデータが同期されます：</p>
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
                         <input type="text" id="shareLink" readonly style="flex: 1; padding: 8px; background: #1a1a1a; color: #ffffff; border: 1px solid #666; border-radius: 4px; font-size: 12px;">
                         <button onclick="copyShareLink()" class="btn btn-info" style="padding: 8px 15px;">コピー</button>
+                    </div>
+                    <div style="text-align: center;">
+                        <div id="qrcode" style="display: inline-block; padding: 10px; background: white; border-radius: 8px;"></div>
+                        <p style="color: #cccccc; font-size: 12px; margin-top: 10px;">📱 スマホでQRコードをスキャン</p>
+                    </div>
+                </div>
+                
+                <div id="importSection" style="display: none; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); border: 1px solid #ff4444; border-radius: 8px;">
+                    <h4 style="color: #ff4444; margin-bottom: 10px;">📥 データインポート</h4>
+                    <p style="color: #cccccc; margin-bottom: 10px;">他のデバイスからエクスポートしたJSONファイルをアップロードしてデータを同期：</p>
+                    <div style="margin-bottom: 15px;">
+                        <input type="file" id="importFile" accept=".json" style="color: #ffffff; background: #1a1a1a; border: 1px solid #666; border-radius: 4px; padding: 8px; width: 100%;">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="importData()" class="btn btn-success">インポート実行</button>
+                        <button onclick="hideImportSection()" class="btn btn-info">キャンセル</button>
                     </div>
                 </div>
                 
@@ -743,8 +763,15 @@
     </div>
 
     <script>
+        // 简化版云端同步 - 使用免费的 JSONBin.io
+        const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b/6759a1b5ad19ca34f8c8f123'; // 公共存储
+        
+        // 同步配置
+        const SYNC_INTERVAL = 10000; // 10秒检查一次
+        let lastSyncTime = 0;
+        
         // データ管理
-        let scheduleData = JSON.parse(localStorage.getItem('bandCalendarData')) || {
+        let scheduleData = {
             responses: [],
             fixedEvents: [
                 { date: '2024-12-19', title: '周年祭配信・株主総会' },
@@ -758,9 +785,209 @@
             }
         };
         
-        // データ保存
+        // 云端同步状态
+        let isOnline = false;
+        let syncIndicator = null;
+        
+        // データ保存（ローカル + クラウド）
         function saveData() {
+            // ローカル保存
             localStorage.setItem('bandCalendarData', JSON.stringify(scheduleData));
+            
+            // 自動クラウド同期
+            autoSync();
+        }
+        
+        // クラウド同步
+        async function syncToCloud() {
+            if (!isOnline) return;
+            
+            showSyncIndicator('uploading');
+            updateSyncStatus('syncing');
+            
+            try {
+                const response = await fetch(CLOUD_STORAGE_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...scheduleData,
+                        lastModified: Date.now()
+                    })
+                });
+                
+                if (response.ok) {
+                    lastSyncTime = Date.now();
+                    showSyncIndicator('success');
+                    updateSyncStatus('online');
+                    console.log('データがクラウドに同期されました');
+                } else {
+                    throw new Error('同期に失敗しました');
+                }
+            } catch (error) {
+                showSyncIndicator('error');
+                updateSyncStatus('error');
+                console.error('同期エラー:', error);
+            }
+        }
+        
+        // クラウドからデータ読み込み
+        async function loadFromCloud() {
+            if (!isOnline) return;
+            
+            showSyncIndicator('downloading');
+            updateSyncStatus('syncing');
+            
+            try {
+                const response = await fetch(CLOUD_STORAGE_URL + '/latest');
+                
+                if (response.ok) {
+                    const cloudData = await response.json();
+                    
+                    if (cloudData.record) {
+                        // クラウドデータとローカルデータをマージ
+                        mergeData(cloudData.record);
+                        lastSyncTime = Date.now();
+                        showSyncIndicator('success');
+                        updateSyncStatus('online');
+                        console.log('クラウドからデータを読み込みました');
+                    }
+                } else if (response.status === 404) {
+                    // クラウドにデータがない場合、ローカルデータをアップロード
+                    await syncToCloud();
+                } else {
+                    throw new Error('データの読み込みに失敗しました');
+                }
+            } catch (error) {
+                showSyncIndicator('error');
+                updateSyncStatus('error');
+                console.error('読み込みエラー:', error);
+                
+                // エラーの場合はローカルデータを使用
+                const localData = localStorage.getItem('bandCalendarData');
+                if (localData) {
+                    scheduleData = JSON.parse(localData);
+                }
+                updateSyncStatus('offline');
+            }
+        }
+        
+        // データマージ
+        function mergeData(cloudData) {
+            // レスポンスをマージ（タイムスタンプが新しい方を優先）
+            const mergedResponses = [...scheduleData.responses];
+            
+            cloudData.responses.forEach(cloudResponse => {
+                const existingIndex = mergedResponses.findIndex(r => r.name === cloudResponse.name);
+                if (existingIndex >= 0) {
+                    // 既存の回答がある場合、タイムスタンプを比較
+                    if (new Date(cloudResponse.timestamp) > new Date(mergedResponses[existingIndex].timestamp)) {
+                        mergedResponses[existingIndex] = cloudResponse;
+                    }
+                } else {
+                    // 新しい回答を追加
+                    mergedResponses.push(cloudResponse);
+                }
+            });
+            
+            // 固定イベントもマージ
+            const mergedEvents = [...scheduleData.fixedEvents];
+            cloudData.fixedEvents.forEach(cloudEvent => {
+                if (!mergedEvents.some(e => e.date === cloudEvent.date)) {
+                    mergedEvents.push(cloudEvent);
+                }
+            });
+            
+            // データ更新
+            scheduleData.responses = mergedResponses;
+            scheduleData.fixedEvents = mergedEvents;
+            scheduleData.period = cloudData.period || scheduleData.period;
+            
+            // ローカル保存
+            localStorage.setItem('bandCalendarData', JSON.stringify(scheduleData));
+        }
+        
+        // 同期インジケーター
+        function showSyncIndicator(status) {
+            if (!syncIndicator) {
+                syncIndicator = document.createElement('div');
+                syncIndicator.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 10px 15px;
+                    border-radius: 5px;
+                    color: white;
+                    font-weight: bold;
+                    z-index: 1000;
+                    transition: all 0.3s;
+                `;
+                document.body.appendChild(syncIndicator);
+            }
+            
+            switch(status) {
+                case 'uploading':
+                    syncIndicator.style.background = '#ff8c00';
+                    syncIndicator.textContent = '📤 同期中...';
+                    break;
+                case 'downloading':
+                    syncIndicator.style.background = '#17a2b8';
+                    syncIndicator.textContent = '📥 読み込み中...';
+                    break;
+                case 'success':
+                    syncIndicator.style.background = '#28a745';
+                    syncIndicator.textContent = '✅ 同期完了';
+                    setTimeout(() => {
+                        if (syncIndicator) {
+                            syncIndicator.style.opacity = '0';
+                            setTimeout(() => {
+                                if (syncIndicator && syncIndicator.parentNode) {
+                                    syncIndicator.parentNode.removeChild(syncIndicator);
+                                    syncIndicator = null;
+                                }
+                            }, 300);
+                        }
+                    }, 2000);
+                    break;
+                case 'error':
+                    syncIndicator.style.background = '#dc3545';
+                    syncIndicator.textContent = '❌ 同期エラー';
+                    setTimeout(() => {
+                        if (syncIndicator) {
+                            syncIndicator.style.opacity = '0';
+                            setTimeout(() => {
+                                if (syncIndicator && syncIndicator.parentNode) {
+                                    syncIndicator.parentNode.removeChild(syncIndicator);
+                                    syncIndicator = null;
+                                }
+                            }, 300);
+                        }
+                    }, 3000);
+                    break;
+            }
+            
+            syncIndicator.style.opacity = '1';
+        }
+        
+        // 定期同期チェック
+        function setupPeriodicSync() {
+            setInterval(async () => {
+                if (isOnline && Date.now() - lastSyncTime > SYNC_INTERVAL) {
+                    await loadFromCloud();
+                }
+            }, SYNC_INTERVAL);
+        }
+        
+        // 自動同期（データ変更時）
+        function autoSync() {
+            if (isOnline) {
+                // 少し遅延させて、連続する変更をまとめる
+                clearTimeout(window.syncTimeout);
+                window.syncTimeout = setTimeout(() => {
+                    syncToCloud();
+                }, 2000);
+            }
         }
         
         // タブ切り替え
@@ -1268,6 +1495,108 @@
             }
         }
         
+        // インポートセクション表示
+        function showImportSection() {
+            document.getElementById('importSection').style.display = 'block';
+        }
+        
+        // インポートセクション非表示
+        function hideImportSection() {
+            document.getElementById('importSection').style.display = 'none';
+            document.getElementById('importFile').value = '';
+        }
+        
+        // データインポート
+        function importData() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('ファイルを選択してください');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // データ構造の検証
+                    if (!importedData.responses || !Array.isArray(importedData.responses)) {
+                        alert('無効なデータファイルです');
+                        return;
+                    }
+                    
+                    const responseCount = importedData.responses.length;
+                    
+                    if (confirm(`${responseCount}件の回答データが見つかりました。\n現在のデータと統合しますか？\n\n注意：同じ名前の回答は上書きされます。`)) {
+                        // 既存の回答と統合（同じ名前は上書き）
+                        const existingNames = scheduleData.responses.map(r => r.name);
+                        const newResponses = importedData.responses.filter(r => !existingNames.includes(r.name));
+                        const updatedResponses = importedData.responses.filter(r => existingNames.includes(r.name));
+                        
+                        // 新しい回答を追加
+                        scheduleData.responses = [...scheduleData.responses, ...newResponses];
+                        
+                        // 既存の回答を更新
+                        updatedResponses.forEach(updatedResponse => {
+                            const index = scheduleData.responses.findIndex(r => r.name === updatedResponse.name);
+                            if (index >= 0) {
+                                scheduleData.responses[index] = updatedResponse;
+                            }
+                        });
+                        
+                        // 固定イベントも統合
+                        if (importedData.fixedEvents) {
+                            const existingEvents = scheduleData.fixedEvents.map(e => e.date);
+                            const newEvents = importedData.fixedEvents.filter(e => !existingEvents.includes(e.date));
+                            scheduleData.fixedEvents = [...scheduleData.fixedEvents, ...newEvents];
+                        }
+                        
+                        saveData();
+                        generateResultsPanel();
+                        hideImportSection();
+                        
+                        alert(`データのインポートが完了しました！\n新規: ${newResponses.length}件\n更新: ${updatedResponses.length}件`);
+                    }
+                } catch (error) {
+                    alert('ファイルの読み込みに失敗しました。正しいJSONファイルか確認してください。');
+                    console.error('Import error:', error);
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // 同期状態更新
+        function updateSyncStatus(status) {
+            const syncIcon = document.getElementById('syncIcon');
+            const syncText = document.getElementById('syncText');
+            
+            switch(status) {
+                case 'online':
+                    syncIcon.textContent = '☁️';
+                    syncText.textContent = 'クラウド同期有効';
+                    syncText.style.color = '#28a745';
+                    break;
+                case 'offline':
+                    syncIcon.textContent = '📱';
+                    syncText.textContent = 'オフライン（ローカル保存）';
+                    syncText.style.color = '#ffc107';
+                    break;
+                case 'syncing':
+                    syncIcon.textContent = '🔄';
+                    syncText.textContent = '同期中...';
+                    syncText.style.color = '#17a2b8';
+                    break;
+                case 'error':
+                    syncIcon.textContent = '⚠️';
+                    syncText.textContent = '同期エラー';
+                    syncText.style.color = '#dc3545';
+                    break;
+            }
+        }
+        
         // 全データクリア
         function clearAllData() {
             if (confirm('全ての回答データを削除しますか？この操作は取り消せません。')) {
@@ -1432,6 +1761,25 @@
             
             document.getElementById('shareLink').value = shareUrl;
             document.getElementById('shareSection').style.display = 'block';
+            
+            // QRコード生成
+            generateQRCode(shareUrl);
+        }
+        
+        // QRコード生成（簡易版）
+        function generateQRCode(url) {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            // Google Charts QR Code API を使用
+            const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(url)}`;
+            const img = document.createElement('img');
+            img.src = qrUrl;
+            img.style.width = '200px';
+            img.style.height = '200px';
+            img.alt = 'QR Code';
+            
+            qrContainer.appendChild(img);
         }
         
         // 共有リンクコピー
@@ -1457,36 +1805,61 @@
                 try {
                     const decodedData = JSON.parse(atob(decodeURIComponent(dataParam)));
                     
-                    // 既存データとマージ
-                    if (confirm('共有データが見つかりました。現在のデータと統合しますか？')) {
-                        // レスポンスをマージ（重複を避ける）
-                        const existingNames = scheduleData.responses.map(r => r.name);
-                        const newResponses = decodedData.responses.filter(r => !existingNames.includes(r.name));
-                        
-                        scheduleData.responses = [...scheduleData.responses, ...newResponses];
-                        
-                        // 固定イベントもマージ
-                        const existingEvents = scheduleData.fixedEvents.map(e => e.date);
-                        const newEvents = decodedData.fixedEvents.filter(e => !existingEvents.includes(e.date));
-                        
-                        scheduleData.fixedEvents = [...scheduleData.fixedEvents, ...newEvents];
-                        
+                    // データを完全に置き換える（より確実な同期）
+                    if (confirm('共有データが見つかりました。このデータで現在のデータを更新しますか？\n\n注意：現在のローカルデータは上書きされます。')) {
+                        scheduleData = decodedData;
                         saveData();
-                        alert(`${newResponses.length}件の新しい回答が追加されました！`);
+                        alert('データが正常に同期されました！');
                         
                         // URLをクリーンアップ
                         window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        // 画面を更新
+                        if (document.querySelector('.nav-tab.active').textContent.includes('結果')) {
+                            generateResultsPanel();
+                        }
                     }
                 } catch (e) {
                     console.error('データの読み込みに失敗しました:', e);
+                    alert('データの読み込みに失敗しました。リンクが正しいか確認してください。');
                 }
             }
         }
         
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
+            // ネットワーク状態チェック
+            isOnline = navigator.onLine;
+            
+            // オンライン/オフライン イベント
+            window.addEventListener('online', () => {
+                isOnline = true;
+                updateSyncStatus('online');
+                loadFromCloud();
+            });
+            
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                updateSyncStatus('offline');
+            });
+            
+            // 初期同期状態表示
+            updateSyncStatus(isOnline ? 'online' : 'offline');
+            
+            // ローカルデータを先に読み込み
+            const localData = localStorage.getItem('bandCalendarData');
+            if (localData) {
+                scheduleData = JSON.parse(localData);
+            }
+            
             // URLからデータを読み込み
             loadDataFromUrl();
+            
+            // オンラインの場合はクラウドから同期
+            if (isOnline) {
+                loadFromCloud();
+                setupPeriodicSync();
+            }
             
             generateCalendar();
             restoreTempData();
