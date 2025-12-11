@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バンドスケジュールカレンダー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Yu Gothic', 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .title {
+            color: #1e40af;
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            background: #1e40af;
+            color: white;
+        }
+        
+        .nav-tab:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .user-info {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .name-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .name-input:focus {
+            outline: none;
+            border-color: #1e40af;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+        
+        .symbol-guide {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .symbol-item {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .symbol {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            line-height: 31px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .symbol.good { background: #48bb78; color: white; border-color: #48bb78; }
+        .symbol.ok { background: #ed8936; color: white; border-color: #ed8936; }
+        .symbol.bad { background: #e53e3e; color: white; border-color: #e53e3e; }
+        
+        .calendar-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .month-title {
+            color: #1e40af;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #1e40af;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .calendar-header {
+            background: #1e40af;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1em;
+        }
+        
+        .calendar-day {
+            background: #f7fafc;
+            padding: 8px;
+            min-height: 90px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .calendar-day:hover {
+            background: #edf2f7;
+            transform: translateY(-1px);
+        }
+        
+        .calendar-day.selectable {
+            background: #dbeafe;
+            border: 2px dashed #3b82f6;
+        }
+        
+        .calendar-day.selectable:hover {
+            background: #bfdbfe;
+        }
+        
+        .calendar-day.other-month {
+            background: #f1f5f9;
+            color: #a0aec0;
+        }
+        
+        .calendar-day.fixed-event {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .date-number {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        
+        .event-label {
+            background: #075985;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            text-align: center;
+            line-height: 1.2;
+            margin: 2px 0;
+        }
+        
+        .event-label.fixed {
+            background: #d69e2e;
+        }
+        
+        .status-marker {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 25px;
+            height: 25px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        
+        .status-marker:hover {
+            transform: scale(1.1);
+        }
+        
+        .status-marker.selected-good {
+            background: #48bb78;
+            color: white;
+            border-color: #48bb78;
+        }
+        
+        .status-marker.selected-ok {
+            background: #ed8936;
+            color: white;
+            border-color: #ed8936;
+        }
+        
+        .status-marker.selected-bad {
+            background: #e53e3e;
+            color: white;
+            border-color: #e53e3e;
+        }
+        
+        .submit-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .submit-btn {
+            background: #1e40af;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .admin-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .admin-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #6c757d;
+        }
+        
+        .admin-title {
+            color: #495057;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .form-input {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+        
+        .results-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .result-name {
+            font-weight: bold;
+            color: #1e40af;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .result-date {
+            padding: 6px 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .result-good { background: #d4edda; color: #155724; }
+        .result-ok { background: #fff3cd; color: #856404; }
+        .result-bad { background: #f8d7da; color: #721c24; }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 1.8em;
+            }
+            
+            .calendar-section {
+                padding: 15px;
+            }
+            
+            .calendar-day {
+                min-height: 70px;
+                padding: 4px;
+            }
+            
+            .status-marker {
+                width: 20px;
+                height: 20px;
+                font-size: 12px;
+            }
+            
+            .symbol-guide {
+                gap: 15px;
+            }
+            
+            .nav-tab {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">🎵 バンドスケジュールカレンダー</div>
+            <div class="subtitle">練習日程調整システム</div>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('calendar')">📅 カレンダー入力</button>
+            <button class="nav-tab" onclick="showTab('admin')">⚙️ 管理</button>
+            <button class="nav-tab" onclick="showTab('results')">📊 結果</button>
+        </div>
+        
+        <!-- カレンダー入力タブ -->
+        <div id="calendar" class="tab-content active">
+            <div class="user-info">
+                <label for="userName" style="font-weight: bold; color: #1e40af; display: block; margin-bottom: 8px;">名前を入力してください：</label>
+                <input type="text" id="userName" class="name-input" placeholder="お名前を入力" />
+            </div>
+            
+            <div class="instructions">
+                <h3>📝 使用方法</h3>
+                <p>各練習候補日の右上にある丸をクリックして、あなたの都合を選択してください：</p>
+                <div class="symbol-guide">
+                    <div class="symbol-item">
+                        <div class="symbol good">○</div>
+                        <div>希望の時間</div>
+                    </div>
+                    <div class="symbol-item">
+                        <div class="symbol ok">△</div>
+                        <div>可能な時間</div>
+                    </div>
+                    <div class="symbol-item">
+                        <div class="symbol bad">✕</div>
+                        <div>不可能な時間</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="calendarContainer">
+                <!-- 動的に生成 -->
+            </div>
+            
+            <div class="submit-section">
+                <button id="submitBtn" class="submit-btn" onclick="submitSchedule()">スケジュールを送信</button>
+            </div>
+        </div>
+        
+        <!-- 管理タブ -->
+        <div id="admin" class="tab-content">
+            <div class="admin-panel">
+                <h2 style="color: #1e40af; margin-bottom: 25px;">⚙️ システム管理</h2>
+                
+                <div class="admin-section">
+                    <div class="admin-title">📅 確定イベント管理</div>
+                    <div id="eventsList"></div>
+                    <div class="form-row">
+                        <input type="date" id="newEventDate" class="form-input" />
+                        <input type="text" id="newEventTitle" class="form-input" placeholder="イベント名" />
+                        <button class="btn btn-success" onclick="addEvent()">追加</button>
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <div class="admin-title">📊 データ管理</div>
+                    <div class="form-row">
+                        <button class="btn btn-info" onclick="exportData()">データエクスポート</button>
+                        <button class="btn btn-danger" onclick="clearAllData()">全データクリア</button>
+                        <button class="btn btn-primary" onclick="generateNewPeriod()">新期間生成</button>
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <div class="admin-title">⚙️ 期間設定</div>
+                    <div class="form-row">
+                        <label>開始日:</label>
+                        <input type="date" id="startDate" class="form-input" />
+                        <label>終了日:</label>
+                        <input type="date" id="endDate" class="form-input" />
+                        <button class="btn btn-primary" onclick="updatePeriod()">更新</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 結果タブ -->
+        <div id="results" class="tab-content">
+            <div class="results-panel">
+                <h2 style="color: #1e40af; margin-bottom: 25px;">📊 回答結果</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-info" onclick="exportResults()">結果エクスポート</button>
+                    <button class="btn btn-primary" onclick="showSummary()">サマリー表示</button>
+                    <button class="btn btn-success" onclick="refreshResults()">更新</button>
+                </div>
+                
+                <div id="resultsList"></div>
+                
+                <div id="summarySection" style="display: none; margin-top: 30px;">
+                    <h3 style="color: #1e40af;">📈 日程サマリー</h3>
+                    <div id="summaryContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // データ管理
+        let scheduleData = JSON.parse(localStorage.getItem('bandCalendarData')) || {
+            responses: [],
+            fixedEvents: [
+                { date: '2024-12-19', title: '周年祭配信・株主総会' },
+                { date: '2025-01-01', title: '「鯨」録音完了' },
+                { date: '2025-01-11', title: '下北沢three対バンライブ' },
+                { date: '2025-01-19', title: 'ミックス完了・鯨MV配信' }
+            ],
+            period: {
+                start: '2024-12-14',
+                end: '2025-01-31'
+            }
+        };
+        
+        // データ保存
+        function saveData() {
+            localStorage.setItem('bandCalendarData', JSON.stringify(scheduleData));
+        }
+        
+        // タブ切り替え
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'calendar') {
+                generateCalendar();
+            } else if (tabName === 'admin') {
+                generateAdminPanel();
+            } else if (tabName === 'results') {
+                generateResultsPanel();
+            }
+        }
+        
+        // カレンダー生成
+        function generateCalendar() {
+            const container = document.getElementById('calendarContainer');
+            const startDate = new Date(scheduleData.period.start);
+            const endDate = new Date(scheduleData.period.end);
+            
+            let html = '';
+            let currentDate = new Date(startDate);
+            
+            // 月ごとにカレンダーを生成
+            while (currentDate <= endDate) {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                
+                html += generateMonthCalendar(year, month);
+                
+                // 次の月へ
+                currentDate.setMonth(month + 1);
+                currentDate.setDate(1);
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // 月別カレンダー生成
+        function generateMonthCalendar(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startOfWeek = new Date(firstDay);
+            startOfWeek.setDate(firstDay.getDate() - firstDay.getDay());
+            
+            let html = `
+                <div class="calendar-section">
+                    <div class="month-title">📅 ${year}年${month + 1}月</div>
+                    <div class="calendar">
+                        <div class="calendar-header">日</div>
+                        <div class="calendar-header">月</div>
+                        <div class="calendar-header">火</div>
+                        <div class="calendar-header">水</div>
+                        <div class="calendar-header">木</div>
+                        <div class="calendar-header">金</div>
+                        <div class="calendar-header">土</div>
+            `;
+            
+            // カレンダーの日付を生成
+            let currentDate = new Date(startOfWeek);
+            
+            for (let week = 0; week < 6; week++) {
+                for (let day = 0; day < 7; day++) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const isCurrentMonth = currentDate.getMonth() === month;
+                    const isSelectable = isCurrentMonth && isDateSelectable(dateStr);
+                    const fixedEvent = scheduleData.fixedEvents.find(e => e.date === dateStr);
+                    
+                    let dayClass = 'calendar-day';
+                    if (!isCurrentMonth) dayClass += ' other-month';
+                    if (isSelectable) dayClass += ' selectable';
+                    if (fixedEvent) dayClass += ' fixed-event';
+                    
+                    html += `<div class="${dayClass}" onclick="toggleDateStatus('${dateStr}')">`;
+                    html += `<div class="date-number">${currentDate.getDate()}</div>`;
+                    
+                    if (fixedEvent) {
+                        html += `<div class="event-label fixed">${fixedEvent.title}</div>`;
+                    } else if (isSelectable) {
+                        html += `<div class="event-label">練習候補</div>`;
+                        html += `<div class="status-marker" data-date="${dateStr}"></div>`;
+                    }
+                    
+                    html += '</div>';
+                    
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                // 月が変わったら終了
+                if (currentDate.getMonth() !== month && week > 0) break;
+            }
+            
+            html += '</div></div>';
+            return html;
+        }
+        
+        // 日付が選択可能かチェック
+        function isDateSelectable(dateStr) {
+            const date = new Date(dateStr);
+            const start = new Date(scheduleData.period.start);
+            const end = new Date(scheduleData.period.end);
+            
+            return date >= start && date <= end && 
+                   !scheduleData.fixedEvents.some(e => e.date === dateStr);
+        }
+        
+        // 日付ステータス切り替え
+        function toggleDateStatus(dateStr) {
+            if (!isDateSelectable(dateStr)) return;
+            
+            const marker = document.querySelector(`[data-date="${dateStr}"]`);
+            if (!marker) return;
+            
+            // 現在のステータスを取得
+            let currentStatus = '';
+            if (marker.classList.contains('selected-good')) currentStatus = 'good';
+            else if (marker.classList.contains('selected-ok')) currentStatus = 'ok';
+            else if (marker.classList.contains('selected-bad')) currentStatus = 'bad';
+            
+            // 次のステータスに切り替え
+            const statuses = ['', 'good', 'ok', 'bad'];
+            const symbols = ['', '○', '△', '✕'];
+            const currentIndex = statuses.indexOf(currentStatus);
+            const nextIndex = (currentIndex + 1) % statuses.length;
+            
+            // クラスをクリア
+            marker.classList.remove('selected-good', 'selected-ok', 'selected-bad');
+            marker.textContent = '';
+            
+            // 新しいステータスを設定
+            if (statuses[nextIndex]) {
+                marker.classList.add(`selected-${statuses[nextIndex]}`);
+                marker.textContent = symbols[nextIndex];
+            }
+        }
+        
+        // スケジュール送信
+        function submitSchedule() {
+            const name = document.getElementById('userName').value.trim();
+            if (!name) {
+                alert('名前を入力してください');
+                return;
+            }
+            
+            // 選択された日程を収集
+            const selections = {};
+            document.querySelectorAll('.status-marker.selected-good, .status-marker.selected-ok, .status-marker.selected-bad').forEach(marker => {
+                const date = marker.dataset.date;
+                let status = '';
+                if (marker.classList.contains('selected-good')) status = 'good';
+                else if (marker.classList.contains('selected-ok')) status = 'ok';
+                else if (marker.classList.contains('selected-bad')) status = 'bad';
+                
+                if (status) selections[date] = status;
+            });
+            
+            if (Object.keys(selections).length === 0) {
+                alert('少なくとも1つの日程を選択してください');
+                return;
+            }
+            
+            // データ保存
+            const existingIndex = scheduleData.responses.findIndex(r => r.name === name);
+            const response = {
+                name: name,
+                selections: selections,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (existingIndex >= 0) {
+                if (confirm('既存の回答を更新しますか？')) {
+                    scheduleData.responses[existingIndex] = response;
+                } else {
+                    return;
+                }
+            } else {
+                scheduleData.responses.push(response);
+            }
+            
+            saveData();
+            alert('スケジュールが送信されました！ありがとうございます。');
+            
+            // フォームリセット
+            document.getElementById('userName').value = '';
+            document.querySelectorAll('.status-marker').forEach(marker => {
+                marker.classList.remove('selected-good', 'selected-ok', 'selected-bad');
+                marker.textContent = '';
+            });
+        }
+        
+        // 管理画面生成
+        function generateAdminPanel() {
+            const eventsList = document.getElementById('eventsList');
+            eventsList.innerHTML = scheduleData.fixedEvents.map((event, index) => `
+                <div class="form-row">
+                    <input type="date" value="${event.date}" class="form-input" readonly>
+                    <input type="text" value="${event.title}" class="form-input" readonly>
+                    <button class="btn btn-danger" onclick="removeEvent(${index})">削除</button>
+                </div>
+            `).join('');
+            
+            document.getElementById('startDate').value = scheduleData.period.start;
+            document.getElementById('endDate').value = scheduleData.period.end;
+        }
+        
+        // イベント追加
+        function addEvent() {
+            const date = document.getElementById('newEventDate').value;
+            const title = document.getElementById('newEventTitle').value.trim();
+            
+            if (!date || !title) {
+                alert('日付とイベント名を入力してください');
+                return;
+            }
+            
+            scheduleData.fixedEvents.push({ date, title });
+            scheduleData.fixedEvents.sort((a, b) => a.date.localeCompare(b.date));
+            saveData();
+            generateAdminPanel();
+            
+            document.getElementById('newEventDate').value = '';
+            document.getElementById('newEventTitle').value = '';
+        }
+        
+        // イベント削除
+        function removeEvent(index) {
+            if (confirm('このイベントを削除しますか？')) {
+                scheduleData.fixedEvents.splice(index, 1);
+                saveData();
+                generateAdminPanel();
+            }
+        }
+        
+        // 期間更新
+        function updatePeriod() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            
+            if (!start || !end) {
+                alert('開始日と終了日を入力してください');
+                return;
+            }
+            
+            if (start >= end) {
+                alert('終了日は開始日より後にしてください');
+                return;
+            }
+            
+            scheduleData.period = { start, end };
+            saveData();
+            alert('期間が更新されました');
+        }
+        
+        // 結果画面生成
+        function generateResultsPanel() {
+            const resultsList = document.getElementById('resultsList');
+            
+            if (scheduleData.responses.length === 0) {
+                resultsList.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">まだ回答がありません</p>';
+                return;
+            }
+            
+            resultsList.innerHTML = scheduleData.responses.map(response => `
+                <div class="result-item">
+                    <div class="result-name">${response.name}</div>
+                    <div class="result-summary">
+                        ${Object.entries(response.selections).map(([date, status]) => `
+                            <div class="result-date result-${status}">
+                                ${formatDateShort(date)}: ${getStatusText(status)}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="font-size: 12px; color: #666; margin-top: 10px;">
+                        送信: ${new Date(response.timestamp).toLocaleString('ja-JP')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // サマリー表示
+        function showSummary() {
+            const summarySection = document.getElementById('summarySection');
+            const summaryContent = document.getElementById('summaryContent');
+            
+            // 日付別集計
+            const dateSummary = {};
+            scheduleData.responses.forEach(response => {
+                Object.entries(response.selections).forEach(([date, status]) => {
+                    if (!dateSummary[date]) {
+                        dateSummary[date] = { good: 0, ok: 0, bad: 0 };
+                    }
+                    dateSummary[date][status]++;
+                });
+            });
+            
+            const sortedDates = Object.keys(dateSummary).sort();
+            
+            summaryContent.innerHTML = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="border: 1px solid #ddd; padding: 10px;">日付</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; background: #d4edda;">希望</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; background: #fff3cd;">可能</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; background: #f8d7da;">不可</th>
+                                <th style="border: 1px solid #ddd; padding: 10px;">合計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedDates.map(date => {
+                                const summary = dateSummary[date];
+                                const total = summary.good + summary.ok + summary.bad;
+                                return `
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: bold;">${formatDateWithDay(date)}</td>
+                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; background: #d4edda;">${summary.good}</td>
+                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; background: #fff3cd;">${summary.ok}</td>
+                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; background: #f8d7da;">${summary.bad}</td>
+                                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">${total}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            summarySection.style.display = 'block';
+        }
+        
+        // 結果更新
+        function refreshResults() {
+            generateResultsPanel();
+            document.getElementById('summarySection').style.display = 'none';
+        }
+        
+        // データエクスポート
+        function exportResults() {
+            const data = {
+                exportDate: new Date().toISOString(),
+                period: scheduleData.period,
+                fixedEvents: scheduleData.fixedEvents,
+                responses: scheduleData.responses
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `band-calendar-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // 全データクリア
+        function clearAllData() {
+            if (confirm('全ての回答データを削除しますか？この操作は取り消せません。')) {
+                scheduleData.responses = [];
+                saveData();
+                alert('データがクリアされました');
+                generateResultsPanel();
+            }
+        }
+        
+        // ユーティリティ関数
+        function formatDateShort(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+        
+        function formatDateWithDay(dateStr) {
+            const date = new Date(dateStr);
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            return `${date.getMonth() + 1}月${date.getDate()}日（${days[date.getDay()]}）`;
+        }
+        
+        function getStatusText(status) {
+            const texts = { good: '希望', ok: '可能', bad: '不可' };
+            return texts[status] || status;
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            generateCalendar();
+        });
+    </script>
+</body>
+</html>
