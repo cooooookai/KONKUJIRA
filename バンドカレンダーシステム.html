@@ -706,6 +706,16 @@
                     <button class="btn btn-info" onclick="exportResults()">結果エクスポート</button>
                     <button class="btn btn-primary" onclick="showSummary()">サマリー表示</button>
                     <button class="btn btn-success" onclick="refreshResults()">更新</button>
+                    <button class="btn btn-success" onclick="generateShareLink()">共有リンク生成</button>
+                </div>
+                
+                <div id="shareSection" style="display: none; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); border: 1px solid #ff4444; border-radius: 8px;">
+                    <h4 style="color: #ff4444; margin-bottom: 10px;">📱 デバイス間共有</h4>
+                    <p style="color: #cccccc; margin-bottom: 10px;">このリンクを他のデバイスで開くと、現在のデータが同期されます：</p>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="shareLink" readonly style="flex: 1; padding: 8px; background: #1a1a1a; color: #ffffff; border: 1px solid #666; border-radius: 4px; font-size: 12px;">
+                        <button onclick="copyShareLink()" class="btn btn-info" style="padding: 8px 15px;">コピー</button>
+                    </div>
                 </div>
                 
                 <div id="resultsList"></div>
@@ -1283,8 +1293,70 @@
             }
         }
         
+        // 共有リンク生成
+        function generateShareLink() {
+            const data = btoa(JSON.stringify(scheduleData));
+            const baseUrl = window.location.href.split('?')[0];
+            const shareUrl = `${baseUrl}?data=${encodeURIComponent(data)}`;
+            
+            document.getElementById('shareLink').value = shareUrl;
+            document.getElementById('shareSection').style.display = 'block';
+        }
+        
+        // 共有リンクコピー
+        function copyShareLink() {
+            const shareLink = document.getElementById('shareLink');
+            shareLink.select();
+            shareLink.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                alert('リンクがコピーされました！他のデバイスでこのリンクを開いてください。');
+            } catch (err) {
+                alert('コピーに失敗しました。手動でリンクをコピーしてください。');
+            }
+        }
+        
+        // URL からデータを読み込み
+        function loadDataFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    const decodedData = JSON.parse(atob(decodeURIComponent(dataParam)));
+                    
+                    // 既存データとマージ
+                    if (confirm('共有データが見つかりました。現在のデータと統合しますか？')) {
+                        // レスポンスをマージ（重複を避ける）
+                        const existingNames = scheduleData.responses.map(r => r.name);
+                        const newResponses = decodedData.responses.filter(r => !existingNames.includes(r.name));
+                        
+                        scheduleData.responses = [...scheduleData.responses, ...newResponses];
+                        
+                        // 固定イベントもマージ
+                        const existingEvents = scheduleData.fixedEvents.map(e => e.date);
+                        const newEvents = decodedData.fixedEvents.filter(e => !existingEvents.includes(e.date));
+                        
+                        scheduleData.fixedEvents = [...scheduleData.fixedEvents, ...newEvents];
+                        
+                        saveData();
+                        alert(`${newResponses.length}件の新しい回答が追加されました！`);
+                        
+                        // URLをクリーンアップ
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } catch (e) {
+                    console.error('データの読み込みに失敗しました:', e);
+                }
+            }
+        }
+        
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
+            // URLからデータを読み込み
+            loadDataFromUrl();
+            
             generateCalendar();
             restoreTempData();
             
