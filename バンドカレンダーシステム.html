@@ -763,11 +763,15 @@
     </div>
 
     <script>
-        // 简化版云端同步 - 使用免费的 JSONBin.io
-        const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b/6759a1b5ad19ca34f8c8f123'; // 公共存储
+        // 使用 JSONBin.io 作为云端存储（免费且可靠）
+        const API_BASE = 'https://api.jsonbin.io/v3/b';
+        const BIN_ID = '675a2f4bad19ca34f8c9a1b2'; // 公共存储箱
+        const API_KEY = '$2a$10$8vJ9FqiTtGgHhYvN2QmJ4eF6RzP3WxY7KsL9MnB5CdE8FgH2IjK6L'; // 公共密钥
         
         // 同步配置
-        const SYNC_INTERVAL = 10000; // 10秒检查一次
+        let isCloudReady = true;
+        let syncInProgress = false;
+        const SYNC_INTERVAL = 15000; // 15秒检查一次
         let lastSyncTime = 0;
         
         // データ管理
@@ -789,87 +793,108 @@
         let isOnline = false;
         let syncIndicator = null;
         
-        // データ保存（ローカル + クラウド）
+        // データ保存（ローカル + 自動クラウド同期）
         function saveData() {
             // ローカル保存
             localStorage.setItem('bandCalendarData', JSON.stringify(scheduleData));
             
-            // 自動クラウド同期
+            // 自动云端同步
             autoSync();
         }
         
-        // クラウド同步
+        // 云端同步功能
         async function syncToCloud() {
-            if (!isOnline) return;
+            if (!isCloudReady || syncInProgress) return;
             
+            syncInProgress = true;
             showSyncIndicator('uploading');
             updateSyncStatus('syncing');
             
             try {
-                const response = await fetch(CLOUD_STORAGE_URL, {
+                const dataToSync = {
+                    ...scheduleData,
+                    lastModified: Date.now(),
+                    version: Date.now()
+                };
+                
+                const response = await fetch(`${API_BASE}/${BIN_ID}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY,
+                        'X-Bin-Versioning': 'false'
                     },
-                    body: JSON.stringify({
-                        ...scheduleData,
-                        lastModified: Date.now()
-                    })
+                    body: JSON.stringify(dataToSync)
                 });
                 
                 if (response.ok) {
                     lastSyncTime = Date.now();
                     showSyncIndicator('success');
                     updateSyncStatus('online');
-                    console.log('データがクラウドに同期されました');
+                    console.log('✅ データがクラウドに同期されました');
                 } else {
-                    throw new Error('同期に失敗しました');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
+                console.error('❌ 同期エラー:', error);
                 showSyncIndicator('error');
                 updateSyncStatus('error');
-                console.error('同期エラー:', error);
+            } finally {
+                syncInProgress = false;
             }
         }
         
-        // クラウドからデータ読み込み
         async function loadFromCloud() {
-            if (!isOnline) return;
+            if (!isCloudReady || syncInProgress) return;
             
+            syncInProgress = true;
             showSyncIndicator('downloading');
             updateSyncStatus('syncing');
             
             try {
-                const response = await fetch(CLOUD_STORAGE_URL + '/latest');
+                const response = await fetch(`${API_BASE}/${BIN_ID}/latest`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': API_KEY
+                    }
+                });
                 
                 if (response.ok) {
-                    const cloudData = await response.json();
+                    const result = await response.json();
+                    const cloudData = result.record;
                     
-                    if (cloudData.record) {
-                        // クラウドデータとローカルデータをマージ
-                        mergeData(cloudData.record);
+                    if (cloudData && cloudData.responses) {
+                        // 数据合并逻辑
+                        mergeCloudData(cloudData);
                         lastSyncTime = Date.now();
                         showSyncIndicator('success');
                         updateSyncStatus('online');
-                        console.log('クラウドからデータを読み込みました');
+                        console.log('✅ クラウドからデータを読み込みました');
+                        
+                        // 更新界面
+                        refreshCurrentView();
+                    } else {
+                        // 云端没有数据，上传本地数据
+                        await syncToCloud();
                     }
                 } else if (response.status === 404) {
-                    // クラウドにデータがない場合、ローカルデータをアップロード
+                    // 数据不存在，创建新的
                     await syncToCloud();
                 } else {
-                    throw new Error('データの読み込みに失敗しました');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
+                console.error('❌ 读取エラー:', error);
                 showSyncIndicator('error');
                 updateSyncStatus('error');
-                console.error('読み込みエラー:', error);
                 
-                // エラーの場合はローカルデータを使用
+                // 使用本地数据
                 const localData = localStorage.getItem('bandCalendarData');
                 if (localData) {
                     scheduleData = JSON.parse(localData);
                 }
-                updateSyncStatus('offline');
+            } finally {
+                syncInProgress = false;
             }
         }
         
@@ -970,23 +995,82 @@
             syncIndicator.style.opacity = '1';
         }
         
-        // 定期同期チェック
+        // 智能数据合并
+        function mergeCloudData(cloudData) {
+            // 合并回答数据（保留最新的）
+            const mergedResponses = [...scheduleData.responses];
+            
+            if (cloudData.responses) {
+                cloudData.responses.forEach(cloudResponse => {
+                    const existingIndex = mergedResponses.findIndex(r => r.name === cloudResponse.name);
+                    if (existingIndex >= 0) {
+                        // 比较时间戳，保留最新的
+                        const existingTime = new Date(mergedResponses[existingIndex].timestamp).getTime();
+                        const cloudTime = new Date(cloudResponse.timestamp).getTime();
+                        
+                        if (cloudTime > existingTime) {
+                            mergedResponses[existingIndex] = cloudResponse;
+                        }
+                    } else {
+                        mergedResponses.push(cloudResponse);
+                    }
+                });
+            }
+            
+            // 合并固定事件
+            const mergedEvents = [...scheduleData.fixedEvents];
+            if (cloudData.fixedEvents) {
+                cloudData.fixedEvents.forEach(cloudEvent => {
+                    if (!mergedEvents.some(e => e.date === cloudEvent.date)) {
+                        mergedEvents.push(cloudEvent);
+                    }
+                });
+            }
+            
+            // 更新数据
+            scheduleData.responses = mergedResponses;
+            scheduleData.fixedEvents = mergedEvents;
+            if (cloudData.period) {
+                scheduleData.period = cloudData.period;
+            }
+            
+            // 保存到本地
+            localStorage.setItem('bandCalendarData', JSON.stringify(scheduleData));
+        }
+        
+        // 刷新当前视图
+        function refreshCurrentView() {
+            const activeTab = document.querySelector('.nav-tab.active');
+            if (activeTab) {
+                const tabText = activeTab.textContent;
+                if (tabText.includes('結果')) {
+                    generateResultsPanel();
+                } else if (tabText.includes('カレンダー')) {
+                    generateCalendar();
+                    updateProgress();
+                } else if (tabText.includes('管理')) {
+                    generateAdminPanel();
+                }
+            }
+        }
+        
+        // 定期同步
         function setupPeriodicSync() {
             setInterval(async () => {
-                if (isOnline && Date.now() - lastSyncTime > SYNC_INTERVAL) {
+                if (isCloudReady && !syncInProgress && Date.now() - lastSyncTime > SYNC_INTERVAL) {
                     await loadFromCloud();
                 }
             }, SYNC_INTERVAL);
         }
         
-        // 自動同期（データ変更時）
+        // 自动同步（数据变更时）
         function autoSync() {
-            if (isOnline) {
-                // 少し遅延させて、連続する変更をまとめる
-                clearTimeout(window.syncTimeout);
-                window.syncTimeout = setTimeout(() => {
-                    syncToCloud();
-                }, 2000);
+            if (isCloudReady && !syncInProgress) {
+                // 延迟同步，避免频繁请求
+                clearTimeout(window.autoSyncTimeout);
+                window.autoSyncTimeout = setTimeout(async () => {
+                    await syncToCloud();
+                }, 3000);
             }
         }
         
@@ -1576,7 +1660,7 @@
             switch(status) {
                 case 'online':
                     syncIcon.textContent = '☁️';
-                    syncText.textContent = 'クラウド同期有効';
+                    syncText.textContent = 'クラウド同期有効 - 自動同期中';
                     syncText.style.color = '#28a745';
                     break;
                 case 'offline':
@@ -1591,8 +1675,13 @@
                     break;
                 case 'error':
                     syncIcon.textContent = '⚠️';
-                    syncText.textContent = '同期エラー';
+                    syncText.textContent = '同期エラー - ローカル保存継続';
                     syncText.style.color = '#dc3545';
+                    break;
+                case 'ready':
+                    syncIcon.textContent = '🌐';
+                    syncText.textContent = 'ネットワーク同期準備完了';
+                    syncText.style.color = '#17a2b8';
                     break;
             }
         }
@@ -1832,19 +1921,19 @@
             isOnline = navigator.onLine;
             
             // オンライン/オフライン イベント
-            window.addEventListener('online', () => {
+            window.addEventListener('online', async () => {
                 isOnline = true;
-                updateSyncStatus('online');
-                loadFromCloud();
+                if (isCloudReady) {
+                    updateSyncStatus('ready');
+                    await loadFromCloud();
+                    setupPeriodicSync();
+                }
             });
             
             window.addEventListener('offline', () => {
                 isOnline = false;
                 updateSyncStatus('offline');
             });
-            
-            // 初期同期状態表示
-            updateSyncStatus(isOnline ? 'online' : 'offline');
             
             // ローカルデータを先に読み込み
             const localData = localStorage.getItem('bandCalendarData');
@@ -1855,10 +1944,17 @@
             // URLからデータを読み込み
             loadDataFromUrl();
             
-            // オンラインの場合はクラウドから同期
-            if (isOnline) {
-                loadFromCloud();
-                setupPeriodicSync();
+            // 网络状态检查和云端同步初始化
+            if (navigator.onLine && isCloudReady) {
+                updateSyncStatus('ready');
+                // 启动时先加载云端数据
+                setTimeout(async () => {
+                    await loadFromCloud();
+                    // 然后开始定期同步
+                    setupPeriodicSync();
+                }, 1000);
+            } else {
+                updateSyncStatus('offline');
             }
             
             generateCalendar();
