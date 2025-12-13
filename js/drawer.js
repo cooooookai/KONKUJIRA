@@ -160,16 +160,16 @@ class DrawerManager {
         container.innerHTML = `
             <form id="availability-form-element" novalidate>
                 <div class="form-group">
-                    <label for="avail-start-time">開始時刻 <span class="required">*</span></label>
-                    <input type="time" id="avail-start-time" required 
+                    <label for="avail-start-time">開始時刻 <span class="optional">(任意)</span></label>
+                    <input type="time" id="avail-start-time" 
                            aria-describedby="start-time-help"
                            class="time-input">
                     <small id="start-time-help" class="form-help">空き時間の開始時刻を選択してください</small>
                 </div>
                 
                 <div class="form-group">
-                    <label for="avail-end-time">終了時刻 <span class="required">*</span></label>
-                    <input type="time" id="avail-end-time" required 
+                    <label for="avail-end-time">終了時刻 <span class="optional">(任意)</span></label>
+                    <input type="time" id="avail-end-time" 
                            aria-describedby="end-time-help"
                            class="time-input">
                     <small id="end-time-help" class="form-help">空き時間の終了時刻を選択してください</small>
@@ -240,23 +240,27 @@ class DrawerManager {
             this.clearFieldError('time-range-error');
             this.clearFieldError('status-error');
             
-            // Validate time range
-            if (startTime && endTime) {
-                if (startTime >= endTime) {
-                    this.showFieldError('time-range-error', '終了時刻は開始時刻より後である必要があります');
-                    isValid = false;
-                }
-            }
-            
-            // Validate status selection - all statuses (○/△/×) are valid
+            // Validate status selection - this is the only required field
             if (!selectedStatus) {
                 this.showFieldError('status-error', '空き状況を選択してください');
                 isValid = false;
-            }
-            
-            // Validate required fields - time is required for all statuses
-            if (!startTime || !endTime) {
-                isValid = false;
+            } else {
+                // If time is provided, validate the range (for all statuses)
+                if (startTime && endTime) {
+                    if (startTime >= endTime) {
+                        this.showFieldError('time-range-error', '終了時刻は開始時刻より後である必要があります');
+                        isValid = false;
+                    }
+                }
+                // If only one time field is filled, show error
+                else if (startTime && !endTime) {
+                    this.showFieldError('time-range-error', '終了時刻も入力してください');
+                    isValid = false;
+                }
+                else if (!startTime && endTime) {
+                    this.showFieldError('time-range-error', '開始時刻も入力してください');
+                    isValid = false;
+                }
             }
             
             saveBtn.disabled = !isValid;
@@ -330,20 +334,23 @@ class DrawerManager {
         selectedBtn.setAttribute('aria-checked', 'true');
         selectedBtn.classList.add('selected');
         
-        // Trigger validation immediately after status selection
-        const startTimeInput = document.getElementById('avail-start-time');
-        const endTimeInput = document.getElementById('avail-end-time');
-        const saveBtn = document.getElementById('save-availability');
+        // All time inputs are optional for all statuses
+        const timeInputs = document.querySelectorAll('#avail-start-time, #avail-end-time');
+        const timeLabels = document.querySelectorAll('label[for="avail-start-time"], label[for="avail-end-time"]');
         
-        // Check if we can enable the save button
-        const startTime = startTimeInput ? startTimeInput.value : '';
-        const endTime = endTimeInput ? endTimeInput.value : '';
+        // Make all time inputs optional and visually indicate they are optional
+        timeInputs.forEach(input => {
+            input.required = false;
+            input.style.opacity = '0.8';
+        });
         
-        if (startTime && endTime && startTime < endTime) {
-            if (saveBtn) {
-                saveBtn.disabled = false;
+        timeLabels.forEach(label => {
+            label.style.opacity = '0.8';
+            // Add optional indicator if not already present
+            if (!label.textContent.includes('(任意)')) {
+                label.innerHTML = label.innerHTML.replace(' <span class="required">*</span>', ' <span class="optional">(任意)</span>');
             }
-        }
+        });
         
         // Trigger validation event
         const form = document.getElementById('availability-form-element');
@@ -795,21 +802,30 @@ class DrawerManager {
             const endTime = document.getElementById('avail-end-time').value;
             const selectedStatus = document.querySelector('.status-btn.selected');
             
-            if (!startTime || !endTime || !selectedStatus) {
-                alert('すべての項目を入力してください。');
+            if (!selectedStatus) {
+                alert('空き状況を選択してください。');
                 return;
             }
             
             const status = selectedStatus.dataset.status;
             
-            // Create datetime strings
-            const startDateTime = `${this.currentDate}T${startTime}:00`;
-            const endDateTime = `${this.currentDate}T${endTime}:00`;
+            let startDateTime, endDateTime;
             
-            // Validate time range
-            if (startDateTime >= endDateTime) {
-                alert(CONFIG.ERROR_MESSAGES.INVALID_DATE_RANGE);
-                return;
+            // Create datetime strings - all statuses can work without time input
+            if (startTime && endTime) {
+                // If time is provided, use specific time
+                startDateTime = `${this.currentDate}T${startTime}:00`;
+                endDateTime = `${this.currentDate}T${endTime}:00`;
+                
+                // Validate time range
+                if (startDateTime >= endDateTime) {
+                    alert(CONFIG.ERROR_MESSAGES.INVALID_DATE_RANGE);
+                    return;
+                }
+            } else {
+                // If no time provided, use full day for all statuses
+                startDateTime = `${this.currentDate}T00:00:00`;
+                endDateTime = `${this.currentDate}T23:59:59`;
             }
             
             // Update button state

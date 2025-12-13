@@ -770,6 +770,12 @@ main {
     font-weight: normal;
 }
 
+.optional {
+    color: #7f8c8d;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
 .form-group input,
 .form-group select {
     width: 100%;
