@@ -4,7 +4,7 @@
 
 const CONFIG = {
     // API Configuration
-    API_BASE_URL: 'https://band-sync-calendar.coooookai.workers.dev',
+    API_BASE_URL: 'https://band-sync-calendar-production.cooooookai.workers.dev',
     
     // Calendar Views
     CALENDAR_VIEWS: {
