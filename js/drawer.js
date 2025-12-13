@@ -248,12 +248,13 @@ class DrawerManager {
                 }
             }
             
-            // Validate status selection
+            // Validate status selection - all statuses (○/△/×) are valid
             if (!selectedStatus) {
+                this.showFieldError('status-error', '空き状況を選択してください');
                 isValid = false;
             }
             
-            // Validate required fields
+            // Validate required fields - time is required for all statuses
             if (!startTime || !endTime) {
                 isValid = false;
             }
@@ -265,6 +266,11 @@ class DrawerManager {
         // Add event listeners
         startTimeInput.addEventListener('input', validateForm);
         endTimeInput.addEventListener('input', validateForm);
+        
+        // Add validation trigger for status buttons
+        statusButtons.forEach(btn => {
+            btn.addEventListener('click', validateForm);
+        });
         
         // Form submission
         form.addEventListener('submit', (e) => {
@@ -324,7 +330,22 @@ class DrawerManager {
         selectedBtn.setAttribute('aria-checked', 'true');
         selectedBtn.classList.add('selected');
         
-        // Trigger validation
+        // Trigger validation immediately after status selection
+        const startTimeInput = document.getElementById('avail-start-time');
+        const endTimeInput = document.getElementById('avail-end-time');
+        const saveBtn = document.getElementById('save-availability');
+        
+        // Check if we can enable the save button
+        const startTime = startTimeInput ? startTimeInput.value : '';
+        const endTime = endTimeInput ? endTimeInput.value : '';
+        
+        if (startTime && endTime && startTime < endTime) {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+            }
+        }
+        
+        // Trigger validation event
         const form = document.getElementById('availability-form-element');
         if (form) {
             form.dispatchEvent(new Event('input'));
