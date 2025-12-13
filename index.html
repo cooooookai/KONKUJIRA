@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バンド同期カレンダー</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link href="css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <h1>バンド同期カレンダー</h1>
+                <div class="header-buttons">
+                    <button id="holiday-button" class="holiday-button" aria-label="祝日を表示">🎌 祝日</button>
+                    <button id="settings-button" class="settings-button" aria-label="設定">⚙️ 設定</button>
+                </div>
+            </div>
+            <div id="nickname-display"></div>
+        </header>
+        
+        <main>
+            <div id="calendar"></div>
+        </main>
+        
+        <!-- Drawer Interface -->
+        <div id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+            <div class="drawer-content">
+                <div class="drawer-header">
+                    <h2 id="drawer-title">スケジュール入力</h2>
+                    <button id="drawer-close" class="close-btn" aria-label="閉じる">&times;</button>
+                </div>
+                
+                <div class="drawer-tabs">
+                    <button id="availability-tab" class="tab-btn active">空き状況</button>
+                    <button id="event-tab" class="tab-btn">イベント</button>
+                </div>
+                
+                <div id="availability-form" class="form-content">
+                    <!-- Availability form will be populated by JavaScript -->
+                </div>
+                
+                <div id="event-form" class="form-content hidden">
+                    <!-- Event form will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Nickname Modal -->
+        <div id="nickname-modal" class="modal">
+            <div class="modal-content">
+                <h2>ニックネームを入力してください</h2>
+                <input type="text" id="nickname-input" placeholder="ニックネーム" maxlength="20">
+                <button id="nickname-submit">設定</button>
+            </div>
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <!-- Application JS -->
+    <script src="js/config.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/storage-manager.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/network-status.js"></script>
+    <script src="js/sync-manager.js"></script>
+    <script src="js/holidays.js"></script>
+    <script src="js/holiday-display.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/drawer.js"></script>
+    <script src="js/nickname.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
