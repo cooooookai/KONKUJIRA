@@ -19,6 +19,7 @@
             <div class="header-content">
                 <h1>バンド同期カレンダー</h1>
                 <div class="header-buttons">
+                    <button id="overview-button" class="overview-button" aria-label="メンバー概览">👥 概览</button>
                     <button id="holiday-button" class="holiday-button" aria-label="祝日を表示">🎌 祝日</button>
                     <button id="settings-button" class="settings-button" aria-label="設定">⚙️ 設定</button>
                 </div>
@@ -53,12 +54,22 @@
             </div>
         </div>
         
-        <!-- Nickname Modal -->
+        <!-- Member Selection Modal -->
         <div id="nickname-modal" class="modal">
             <div class="modal-content">
-                <h2>ニックネームを入力してください</h2>
-                <input type="text" id="nickname-input" placeholder="ニックネーム" maxlength="20">
-                <button id="nickname-submit">設定</button>
+                <h2>メンバーを選択してください</h2>
+                <div class="member-selection">
+                    <select id="member-select" class="member-select">
+                        <option value="">メンバーを選択...</option>
+                        <option value="COKAI">COKAI</option>
+                        <option value="YUSUKE">YUSUKE</option>
+                        <option value="ZEN">ZEN</option>
+                        <option value="YAMCHI">YAMCHI</option>
+                        <option value="テスト">テスト</option>
+                        <option value="USER">USER</option>
+                    </select>
+                </div>
+                <button id="nickname-submit" disabled>選択</button>
             </div>
         </div>
         
@@ -85,6 +96,7 @@
     <script src="js/holiday-display.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/drawer.js"></script>
+    <script src="js/member-overview.js"></script>
     <script src="js/nickname.js"></script>
     <script src="js/app.js"></script>
 </body>

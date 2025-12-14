@@ -1,12 +1,13 @@
 /**
- * Nickname Management for Band Sync Calendar
- * Handles user identification without formal authentication
+ * Member Selection for Band Sync Calendar
+ * Handles user identification from predefined band members
  */
 
 class NicknameManager {
     constructor() {
         this.modal = null;
         this.callback = null;
+        this.predefinedMembers = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI', 'テスト', 'USER'];
     }
     
     initialize() {
@@ -21,24 +22,24 @@ class NicknameManager {
     }
     
     setupEventListeners() {
-        const input = document.getElementById('nickname-input');
+        const select = document.getElementById('member-select');
         const submitBtn = document.getElementById('nickname-submit');
         
         if (submitBtn) {
-            submitBtn.addEventListener('click', () => this.saveNickname());
+            submitBtn.addEventListener('click', () => this.saveMemberSelection());
         }
         
-        if (input) {
-            // Submit on Enter key
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    this.saveNickname();
-                }
+        if (select) {
+            // Enable submit button when selection is made
+            select.addEventListener('change', () => {
+                this.validateSelection();
             });
             
-            // Real-time validation
-            input.addEventListener('input', () => {
-                this.validateInput();
+            // Submit on Enter key
+            select.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && select.value) {
+                    this.saveMemberSelection();
+                }
             });
         }
         
@@ -54,14 +55,14 @@ class NicknameManager {
         this.callback = callback;
         this.modal.classList.remove('hidden');
         
-        // Focus input
-        const input = document.getElementById('nickname-input');
-        if (input) {
-            input.value = '';
-            input.focus();
+        // Focus select and reset
+        const select = document.getElementById('member-select');
+        if (select) {
+            select.value = '';
+            select.focus();
         }
         
-        this.validateInput();
+        this.validateSelection();
     }
     
     hide() {
@@ -71,64 +72,37 @@ class NicknameManager {
         this.callback = null;
     }
     
-    validateInput() {
-        const input = document.getElementById('nickname-input');
+    validateSelection() {
+        const select = document.getElementById('member-select');
         const submitBtn = document.getElementById('nickname-submit');
         
-        if (!input || !submitBtn) return;
+        if (!select || !submitBtn) return;
         
-        const value = input.value.trim();
-        const isValid = value.length > 0 && value.length <= CONFIG.MAX_NICKNAME_LENGTH;
+        const selectedMember = select.value;
+        const isValid = selectedMember && this.predefinedMembers.includes(selectedMember);
         
         submitBtn.disabled = !isValid;
         
-        // Update input styling
-        input.style.borderColor = value.length === 0 ? '' : (isValid ? '#27ae60' : '#e74c3c');
-        
-        // Show character count
-        this.updateCharacterCount(value.length);
+        // Update select styling
+        select.style.borderColor = selectedMember ? '#27ae60' : '';
     }
     
-    updateCharacterCount(count) {
-        let counter = document.getElementById('char-counter');
-        
-        if (!counter) {
-            counter = document.createElement('div');
-            counter.id = 'char-counter';
-            counter.style.cssText = 'font-size: 0.8rem; color: #666; margin-top: 0.5rem; text-align: right;';
-            
-            const input = document.getElementById('nickname-input');
-            if (input && input.parentNode) {
-                input.parentNode.insertBefore(counter, input.nextSibling);
-            }
-        }
-        
-        counter.textContent = `${count}/${CONFIG.MAX_NICKNAME_LENGTH}`;
-        counter.style.color = count > CONFIG.MAX_NICKNAME_LENGTH ? '#e74c3c' : '#666';
-    }
-    
-    saveNickname() {
-        const input = document.getElementById('nickname-input');
+    saveMemberSelection() {
+        const select = document.getElementById('member-select');
         const submitBtn = document.getElementById('nickname-submit');
         
-        if (!input) return;
+        if (!select) return;
         
-        const nickname = input.value.trim();
+        const selectedMember = select.value;
         
-        // Validate nickname
-        if (!nickname) {
-            this.showError('ニックネームを入力してください。');
+        // Validate selection
+        if (!selectedMember) {
+            this.showError('メンバーを選択してください。');
             return;
         }
         
-        if (nickname.length > CONFIG.MAX_NICKNAME_LENGTH) {
-            this.showError(`ニックネームは${CONFIG.MAX_NICKNAME_LENGTH}文字以内で入力してください。`);
-            return;
-        }
-        
-        // Check for invalid characters
-        if (this.containsInvalidCharacters(nickname)) {
-            this.showError('使用できない文字が含まれています。');
+        if (!this.predefinedMembers.includes(selectedMember)) {
+            this.showError('無効なメンバーが選択されています。');
             return;
         }
         
@@ -139,10 +113,10 @@ class NicknameManager {
         }
         
         try {
-            const success = storage.setNickname(nickname);
+            const success = storage.setNickname(selectedMember);
             
             if (success) {
-                console.log('Nickname saved:', nickname);
+                console.log('Member selected:', selectedMember);
                 this.hide();
                 
                 // Execute callback if provided
@@ -151,25 +125,29 @@ class NicknameManager {
                 }
                 
                 // Update display
-                this.updateNicknameDisplay(nickname);
+                this.updateNicknameDisplay(selectedMember);
+                
+                // Show welcome message
+                this.showWelcomeMessage(selectedMember);
             } else {
-                this.showError('ニックネームの保存に失敗しました。');
+                this.showError('メンバー選択の保存に失敗しました。');
             }
         } catch (error) {
-            console.error('Failed to save nickname:', error);
-            this.showError('ニックネームの保存に失敗しました。');
+            console.error('Failed to save member selection:', error);
+            this.showError('メンバー選択の保存に失敗しました。');
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = '設定';
+                submitBtn.textContent = '選択';
             }
         }
     }
     
-    containsInvalidCharacters(nickname) {
-        // Check for potentially problematic characters
-        const invalidChars = /[<>\"'&]/;
-        return invalidChars.test(nickname);
+    showWelcomeMessage(memberName) {
+        // Show a brief welcome message
+        setTimeout(() => {
+            alert(`ようこそ、${memberName}さん！\n\n同じメンバーで新しいデータを保存すると、以前のデータは上書きされます。`);
+        }, 500);
     }
     
     updateNicknameDisplay(nickname) {
@@ -206,35 +184,35 @@ class NicknameManager {
         return success;
     }
     
-    // Show change nickname dialog
+    // Show change member dialog
     showChangeDialog() {
-        const currentNickname = this.getCurrentNickname();
-        const newNickname = prompt(`現在のニックネーム: ${currentNickname}\n\n新しいニックネームを入力してください:`, currentNickname);
+        const currentMember = this.getCurrentNickname();
+        const memberOptions = this.predefinedMembers.map((member, index) => 
+            `${index + 1}. ${member}${member === currentMember ? ' (現在)' : ''}`
+        ).join('\n');
         
-        if (newNickname !== null && newNickname.trim() !== currentNickname) {
-            const trimmed = newNickname.trim();
+        const message = `現在のメンバー: ${currentMember}\n\n利用可能なメンバー:\n${memberOptions}\n\n新しいメンバー名を入力してください:`;
+        const newMember = prompt(message);
+        
+        if (newMember !== null && newMember.trim() !== currentMember) {
+            const trimmed = newMember.trim();
             
-            if (trimmed.length === 0) {
-                this.showError('ニックネームを入力してください。');
+            if (!trimmed) {
+                this.showError('メンバーを選択してください。');
                 return;
             }
             
-            if (trimmed.length > CONFIG.MAX_NICKNAME_LENGTH) {
-                this.showError(`ニックネームは${CONFIG.MAX_NICKNAME_LENGTH}文字以内で入力してください。`);
-                return;
-            }
-            
-            if (this.containsInvalidCharacters(trimmed)) {
-                this.showError('使用できない文字が含まれています。');
+            if (!this.predefinedMembers.includes(trimmed)) {
+                this.showError('無効なメンバー名です。利用可能なメンバー: ' + this.predefinedMembers.join(', '));
                 return;
             }
             
             const success = storage.setNickname(trimmed);
             if (success) {
                 this.updateNicknameDisplay(trimmed);
-                alert('ニックネームを変更しました。');
+                alert(`メンバーを${trimmed}に変更しました。\n\n注意: 同じメンバーで新しいデータを保存すると、以前のデータは上書きされます。`);
             } else {
-                this.showError('ニックネームの変更に失敗しました。');
+                this.showError('メンバー変更に失敗しました。');
             }
         }
     }

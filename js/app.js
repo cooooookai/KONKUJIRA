@@ -105,6 +105,16 @@ class BandSyncCalendar {
             }
         });
         
+        // Overview button
+        const overviewButton = document.getElementById('overview-button');
+        if (overviewButton) {
+            overviewButton.addEventListener('click', () => {
+                if (typeof showMemberOverview !== 'undefined') {
+                    showMemberOverview();
+                }
+            });
+        }
+        
         // Holiday button
         const holidayButton = document.getElementById('holiday-button');
         if (holidayButton) {
