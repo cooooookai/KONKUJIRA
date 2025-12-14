@@ -17,7 +17,42 @@
     <div id="app">
         <header>
             <div class="header-content">
-                <h1>バンド同期カレンダー</h1>
+                <div class="header-left">
+                    <div class="band-logo">
+                        <div class="logo-container">
+                            <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Outer ring with music wave pattern -->
+                                <circle cx="30" cy="30" r="28" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.8"/>
+                                
+                                <!-- Sound waves -->
+                                <path d="M15 25 Q20 20, 25 25 T35 25 Q40 20, 45 25" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                <path d="M15 35 Q20 40, 25 35 T35 35 Q40 40, 45 35" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                
+                                <!-- Central K symbol with modern design -->
+                                <g transform="translate(30,30)">
+                                    <path d="M-8,-12 L-8,12 M-8,0 L8,-8 M-8,2 L8,12" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                </g>
+                                
+                                <!-- Gradient definitions -->
+                                <defs>
+                                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#4facfe;stop-opacity:0.8" />
+                                        <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:0.8" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <div class="band-name">KONKUJIRA</div>
+                            <div class="app-name">バンド同期カレンダー</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="header-buttons">
                     <button id="holiday-button" class="holiday-button" aria-label="祝日を表示">🎌 祝日</button>
                     <button id="settings-button" class="settings-button" aria-label="設定">⚙️ 設定</button>

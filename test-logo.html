@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Test - KONKUJIRA Band Calendar</title>
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="band-logo">
+                        <div class="logo-container">
+                            <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Outer ring with music wave pattern -->
+                                <circle cx="30" cy="30" r="28" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.8"/>
+                                
+                                <!-- Sound waves -->
+                                <path d="M15 25 Q20 20, 25 25 T35 25 Q40 20, 45 25" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                <path d="M15 35 Q20 40, 25 35 T35 35 Q40 40, 45 35" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                
+                                <!-- Central K symbol with modern design -->
+                                <g transform="translate(30,30)">
+                                    <path d="M-8,-12 L-8,12 M-8,0 L8,-8 M-8,2 L8,12" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                </g>
+                                
+                                <!-- Gradient definitions -->
+                                <defs>
+                                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#4facfe;stop-opacity:0.8" />
+                                        <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:0.8" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <div class="band-name">KONKUJIRA</div>
+                            <div class="app-name">バンド同期カレンダー</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-buttons">
+                    <button id="holiday-button" class="holiday-button" aria-label="祝日を表示">🎌 祝日</button>
+                    <button id="settings-button" class="settings-button" aria-label="設定">⚙️ 設定</button>
+                </div>
+            </div>
+            <div id="nickname-display">ユーザー: COKAI</div>
+        </header>
+        
+        <main style="padding: 2rem; text-align: center;">
+            <h2>🎵 KONKUJIRA バンドロゴテスト</h2>
+            <p>新しいロゴデザインをテストしています。</p>
+            <div style="margin-top: 2rem; padding: 2rem; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                <h3 style="color: #2c3e50; margin-bottom: 1.5rem;">🎨 高級ロゴデザインの特徴:</h3>
+                <ul style="text-align: left; max-width: 500px; margin: 0 auto; line-height: 1.8;">
+                    <li>🎵 <strong>SVGベクターデザイン</strong> - 完全にスケーラブルで高解像度</li>
+                    <li>🌈 <strong>プレミアムグラデーション</strong> - 多層グラデーションで深みのある色彩</li>
+                    <li>🎼 <strong>音波パターン</strong> - 音楽をビジュアル化した抽象的デザイン</li>
+                    <li>⚡ <strong>モダンアニメーション</strong> - CSS3による滑らかなトランジション</li>
+                    <li>📱 <strong>レスポンシブ対応</strong> - 全デバイスで最適表示</li>
+                    <li>✨ <strong>インタラクティブ効果</strong> - ホバー時の3D変形とグロー効果</li>
+                    <li>🎯 <strong>ブランドアイデンティティ</strong> - KONKUJIRAの「K」を中心とした象徴的デザイン</li>
+                </ul>
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(102, 126, 234, 0.1); border-radius: 8px; border-left: 4px solid #667eea;">
+                    <p style="margin: 0; font-style: italic; color: #667eea;"><strong>デザインコンセプト:</strong> 現代的なミニマリズムと音楽の躍動感を融合した、プロフェッショナルなバンドブランディング</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
