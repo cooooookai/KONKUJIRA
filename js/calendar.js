@@ -292,13 +292,131 @@ class CalendarManager {
     }
     
     /**
-     * Show event details
+     * Show event details with delete option
      */
     showEventDetails(event) {
         const props = event.extendedProps;
         const typeLabel = CONFIG.EVENT_TYPES[props.type] || props.type;
-        const message = `${event.title}\n種類: ${typeLabel}\n時間: ${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}\n作成者: ${props.createdBy}`;
-        alert(message);
+        const currentUser = storage.getNickname();
+        
+        // Create event details modal
+        this.showEventModal(event, {
+            title: event.title,
+            type: typeLabel,
+            startTime: event.start.toLocaleString('ja-JP'),
+            endTime: event.end.toLocaleString('ja-JP'),
+            createdBy: props.createdBy,
+            canDelete: currentUser === props.createdBy || currentUser === 'COKAI' // COKAI can delete any event
+        });
+    }
+    
+    /**
+     * Show event modal with delete option
+     */
+    showEventModal(event, details) {
+        // Create modal HTML
+        const modalHTML = `
+            <div id="event-modal" class="modal" style="display: block;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>📅 イベント詳細</h3>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="event-detail">
+                            <strong>タイトル:</strong> ${details.title}
+                        </div>
+                        <div class="event-detail">
+                            <strong>種類:</strong> ${details.type}
+                        </div>
+                        <div class="event-detail">
+                            <strong>開始時間:</strong> ${details.startTime}
+                        </div>
+                        <div class="event-detail">
+                            <strong>終了時間:</strong> ${details.endTime}
+                        </div>
+                        <div class="event-detail">
+                            <strong>作成者:</strong> ${details.createdBy}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">閉じる</button>
+                        ${details.canDelete ? `
+                            <button class="btn btn-danger" onclick="calendarManager.deleteEvent('${event.id}')">
+                                🗑️ 削除
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add modal to page
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+    
+    /**
+     * Delete event
+     */
+    async deleteEvent(eventId) {
+        // Confirm deletion
+        const confirmed = confirm('このイベントを削除しますか？\nこの操作は取り消せません。');
+        if (!confirmed) return;
+        
+        try {
+            // Show loading
+            const modal = document.getElementById('event-modal');
+            if (modal) {
+                modal.querySelector('.modal-body').innerHTML = '<div class="loading">削除中...</div>';
+            }
+            
+            // Delete via API
+            await apiClient.deleteEvent(eventId);
+            
+            // Close modal
+            if (modal) modal.remove();
+            
+            // Refresh calendar
+            await this.loadData();
+            
+            // Show success message
+            this.showSuccess('イベントが削除されました');
+            
+        } catch (error) {
+            console.error('Failed to delete event:', error);
+            this.showError('イベントの削除に失敗しました: ' + error.message);
+            
+            // Close modal on error
+            const modal = document.getElementById('event-modal');
+            if (modal) modal.remove();
+        }
+    }
+    
+    /**
+     * Show success message
+     */
+    showSuccess(message) {
+        // Simple success notification - could be enhanced
+        const notification = document.createElement('div');
+        notification.className = 'notification success';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            z-index: 10000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
     
     /**
