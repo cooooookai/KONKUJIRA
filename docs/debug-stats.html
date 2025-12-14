@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统计功能调试 - Band Sync Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    
+    <style>
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 300px;
+            z-index: 1000;
+            font-size: 12px;
+        }
+        .debug-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .test-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <h1>バンド同期カレンダー - 调试模式</h1>
+                <div class="header-buttons">
+                    <button id="stats-toggle" class="stats-button">📊 統計</button>
+                    <button id="test-data-btn" class="test-button">🧪 添加测试数据</button>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <div id="calendar"></div>
+        </main>
+    </div>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel">
+        <h4>🔍 调试信息</h4>
+        <button id="check-button-btn" class="test-button">检查按钮</button>
+        <button id="check-data-btn" class="test-button">检查数据</button>
+        <button id="force-stats-btn" class="test-button">强制显示统计</button>
+        <div id="debug-log" class="debug-log">等待调试信息...</div>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <!-- Application JS -->
+    <script src="src/frontend/js/config.js"></script>
+    <script src="src/frontend/js/storage.js"></script>
+    
+    <script>
+        // Debug logging
+        const debugLog = document.getElementById('debug-log');
+        function log(message) {
+            console.log(message);
+            debugLog.innerHTML += message + '<br>';
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+        
+        // Simple calendar setup
+        let calendar;
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                }
+            });
+            calendar.render();
+            log('📅 Calendar rendered');
+        });
+        
+        // Mock stats data
+        const mockStatsData = new Map();
+        const today = new Date();
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
+            mockStatsData.set(dateStr, {
+                good: Math.floor(Math.random() * 3) + 1,
+                ok: Math.floor(Math.random() * 2),
+                bad: Math.floor(Math.random() * 2)
+            });
+        }
+        
+        // Stats toggle functionality
+        let statsEnabled = false;
+        document.getElementById('stats-toggle').addEventListener('click', function() {
+            statsEnabled = !statsEnabled;
+            const btn = this;
+            
+            if (statsEnabled) {
+                btn.classList.add('active');
+                btn.innerHTML = '📊 統計 ON';
+                log('✅ Stats enabled');
+                showMockStats();
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '📊 統計';
+                log('❌ Stats disabled');
+                clearStats();
+            }
+        });
+        
+        function showMockStats() {
+            log('🎨 Showing mock stats...');
+            const dayCells = document.querySelectorAll('.fc-daygrid-day');
+            log(`📅 Found ${dayCells.length} day cells`);
+            
+            let updated = 0;
+            dayCells.forEach(cell => {
+                const dateAttr = cell.getAttribute('data-date');
+                if (dateAttr && mockStatsData.has(dateAttr)) {
+                    const stats = mockStatsData.get(dateAttr);
+                    addStatsToCell(cell, stats);
+                    updated++;
+                    log(`📊 Added stats to ${dateAttr}: ○${stats.good} △${stats.ok} ×${stats.bad}`);
+                }
+            });
+            
+            log(`✅ Updated ${updated} cells`);
+        }
+        
+        function addStatsToCell(cell, stats) {
+            // Remove existing stats
+            const existing = cell.querySelector('.stats-overlay');
+            if (existing) existing.remove();
+            
+            // Create stats overlay
+            const statsEl = document.createElement('div');
+            statsEl.className = 'stats-overlay';
+            
+            let html = '';
+            if (stats.good > 0) html += `<span class="stat-item good">○${stats.good}</span>`;
+            if (stats.ok > 0) html += `<span class="stat-item ok">△${stats.ok}</span>`;
+            if (stats.bad > 0) html += `<span class="stat-item bad">×${stats.bad}</span>`;
+            
+            if (html) {
+                statsEl.innerHTML = html;
+                const dayFrame = cell.querySelector('.fc-daygrid-day-frame') || cell;
+                dayFrame.appendChild(statsEl);
+            }
+        }
+        
+        function clearStats() {
+            document.querySelectorAll('.stats-overlay').forEach(el => el.remove());
+            log('🧹 Cleared all stats');
+        }
+        
+        // Debug buttons
+        document.getElementById('check-button-btn').addEventListener('click', function() {
+            const btn = document.getElementById('stats-toggle');
+            log(`🔍 Stats button exists: ${!!btn}`);
+            log(`🔍 Button classes: ${btn?.className}`);
+            log(`🔍 Button text: ${btn?.innerHTML}`);
+        });
+        
+        document.getElementById('check-data-btn').addEventListener('click', function() {
+            log(`📊 Mock data size: ${mockStatsData.size}`);
+            mockStatsData.forEach((stats, date) => {
+                log(`📅 ${date}: ○${stats.good} △${stats.ok} ×${stats.bad}`);
+            });
+        });
+        
+        document.getElementById('force-stats-btn').addEventListener('click', function() {
+            log('🚀 Force showing stats...');
+            showMockStats();
+        });
+        
+        document.getElementById('test-data-btn').addEventListener('click', function() {
+            log('🧪 Adding test data to storage...');
+            // Mock adding data to storage
+            storage.setNickname('COKAI');
+            log('✅ Set nickname to COKAI');
+            log('💾 Mock data saved');
+        });
+        
+        log('🚀 Debug page loaded');
+    </script>
+</body>
+</html>

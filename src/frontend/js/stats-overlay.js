@@ -60,16 +60,21 @@ class StatsOverlay {
     }
     
     async toggle() {
+        console.log('🔄 Toggling stats overlay...');
         this.isEnabled = !this.isEnabled;
         const statsBtn = document.getElementById('stats-toggle');
+        
+        console.log('📊 Stats enabled:', this.isEnabled);
         
         if (this.isEnabled) {
             statsBtn.classList.add('active');
             statsBtn.innerHTML = '📊 統計 ON';
+            console.log('🚀 Loading and displaying stats...');
             await this.loadAndDisplayStats();
         } else {
             statsBtn.classList.remove('active');
             statsBtn.innerHTML = '📊 統計';
+            console.log('🧹 Clearing stats display...');
             this.clearStatsDisplay();
         }
     }
@@ -88,8 +93,13 @@ class StatsOverlay {
         this.statsData.clear();
         const currentUser = storage.getNickname();
         
+        console.log('🔍 Loading stats data for all members...');
+        console.log('Current user:', currentUser);
+        
         for (const memberName of this.memberNames) {
             try {
+                console.log(`📊 Loading data for ${memberName}...`);
+                
                 // Temporarily switch user to get their data
                 storage.setNickname(memberName);
                 
@@ -100,9 +110,13 @@ class StatsOverlay {
                     const start = view.activeStart.toISOString().split('T')[0];
                     const end = view.activeEnd.toISOString().split('T')[0];
                     
-                    const response = await apiClient.getAvailability(start, end);
+                    console.log(`📅 Date range: ${start} to ${end}`);
                     
-                    if (response && response.data) {
+                    const response = await apiClient.getAvailability(start, end);
+                    console.log(`📋 Response for ${memberName}:`, response);
+                    
+                    if (response && response.data && response.data.length > 0) {
+                        console.log(`✅ Found ${response.data.length} records for ${memberName}`);
                         response.data.forEach(item => {
                             const date = item.date.split('T')[0];
                             if (!this.statsData.has(date)) {
@@ -110,11 +124,16 @@ class StatsOverlay {
                             }
                             const dayStats = this.statsData.get(date);
                             dayStats[item.status]++;
+                            console.log(`📈 Added ${item.status} for ${date}`);
                         });
+                    } else {
+                        console.log(`❌ No data found for ${memberName}`);
                     }
+                } else {
+                    console.log('❌ Calendar not found');
                 }
             } catch (error) {
-                console.warn(`Failed to load data for ${memberName}:`, error);
+                console.warn(`❌ Failed to load data for ${memberName}:`, error);
             }
         }
         
@@ -123,22 +142,34 @@ class StatsOverlay {
             storage.setNickname(currentUser);
         }
         
-        console.log('Stats data loaded:', this.statsData);
+        console.log('📊 Final stats data:', this.statsData);
+        console.log('📊 Stats data size:', this.statsData.size);
     }
     
     updateStatsDisplay() {
-        if (!this.isEnabled) return;
+        if (!this.isEnabled) {
+            console.log('❌ Stats not enabled, skipping display update');
+            return;
+        }
+        
+        console.log('🎨 Updating stats display...');
         
         // Find all calendar day cells
         const dayCells = document.querySelectorAll('.fc-daygrid-day');
+        console.log(`📅 Found ${dayCells.length} calendar day cells`);
         
+        let updatedCells = 0;
         dayCells.forEach(cell => {
             const dateAttr = cell.getAttribute('data-date');
             if (dateAttr && this.statsData.has(dateAttr)) {
                 const stats = this.statsData.get(dateAttr);
+                console.log(`📊 Adding stats to ${dateAttr}:`, stats);
                 this.addStatsToCell(cell, stats);
+                updatedCells++;
             }
         });
+        
+        console.log(`✅ Updated ${updatedCells} cells with stats`);
     }
     
     addStatsToCell(cell, stats) {
