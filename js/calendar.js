@@ -87,6 +87,11 @@ class CalendarManager {
             // Render calendar
             this.calendar.render();
             
+            // Trigger calendar rendered event for stats overlay
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('calendar-rendered'));
+            }, 100);
+            
             // Set up responsive handling
             this.setupResponsiveHandling();
             
@@ -200,9 +205,10 @@ class CalendarManager {
             ]);
             
             // Transform data to FullCalendar format
+            // Note: Backend already returns FullCalendar format for availability
             const calendarEvents = [
-                ...events.map(event => DataTransformer.toFullCalendarEvent(event)),
-                ...availability.map(avail => DataTransformer.toFullCalendarAvailability(avail))
+                ...events, // Events are already in FullCalendar format from backend
+                ...availability // Availability is already in FullCalendar format from backend
             ];
             
             // Add holidays using holiday manager if available

@@ -27,6 +27,7 @@ class BandSyncCalendar {
             await this.initializeCalendar();
             this.initializeDrawer();
             this.initializeNicknameDisplay();
+            this.initializeStatsOverlay();
             this.setupEventListeners();
             this.initializeSyncManager();
             this.startSynchronization();
@@ -60,6 +61,16 @@ class BandSyncCalendar {
         const display = document.getElementById('nickname-display');
         if (display && nickname) {
             display.textContent = `ユーザー: ${nickname}`;
+        }
+    }
+    
+    initializeStatsOverlay() {
+        // Initialize stats overlay if available
+        if (typeof statsOverlay !== 'undefined') {
+            console.log('🚀 Initializing stats overlay from app...');
+            statsOverlay.initialize();
+        } else {
+            console.warn('⚠️ Stats overlay not available');
         }
     }
     

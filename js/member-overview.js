@@ -149,19 +149,53 @@ class MemberOverview {
 
     async loadData() {
         try {
-            // Load availability data
-            const availabilityData = await apiClient.getAvailability(
-                this.currentPeriod.start + 'T00:00:00',
-                this.currentPeriod.end + 'T23:59:59'
-            );
+            // Load availability data for all members
+            const allAvailabilityData = [];
+            const memberNames = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI', 'テスト', 'USER'];
+            
+            for (const memberName of memberNames) {
+                try {
+                    // Temporarily set nickname to fetch each member's data
+                    const originalNickname = storage.getNickname();
+                    storage.setNickname(memberName);
+                    
+                    const memberData = await apiClient.getAvailability(
+                        this.currentPeriod.start,
+                        this.currentPeriod.end
+                    );
+                    
+                    // Add member name to each record
+                    if (memberData && memberData.data) {
+                        memberData.data.forEach(item => {
+                            item.member_name = memberName;
+                            allAvailabilityData.push(item);
+                        });
+                    }
+                    
+                    // Restore original nickname
+                    if (originalNickname) {
+                        storage.setNickname(originalNickname);
+                    }
+                } catch (error) {
+                    console.warn(`Failed to load data for ${memberName}:`, error);
+                }
+            }
 
-            // Load events data
-            const eventsData = await apiClient.getEvents(
-                this.currentPeriod.start + 'T00:00:00',
-                this.currentPeriod.end + 'T23:59:59'
-            );
+            // Load events data (if needed)
+            const eventsData = [];
+            try {
+                const events = await apiClient.getEvents(
+                    this.currentPeriod.start,
+                    this.currentPeriod.end
+                );
+                if (events && events.data) {
+                    eventsData.push(...events.data);
+                }
+            } catch (error) {
+                console.warn('Failed to load events:', error);
+            }
 
-            this.processData(availabilityData, eventsData);
+            this.processData(allAvailabilityData, eventsData);
             this.updateViews();
         } catch (error) {
             console.error('Failed to load overview data:', error);
@@ -266,43 +300,103 @@ class MemberOverview {
             return;
         }
 
-        // Create a simple timeline visualization
-        const timelineHtml = this.createTimelineChart();
-        container.innerHTML = timelineHtml;
+        // Create calendar-style statistics view
+        const calendarHtml = this.createStatsCalendar();
+        container.innerHTML = calendarHtml;
     }
 
-    createTimelineChart() {
+    createStatsCalendar() {
         const days = this.getDaysInPeriod();
-        const members = Array.from(this.members.keys());
+        const dailyStats = this.calculateDailyStats(days);
 
-        let html = '<div class="timeline-grid">';
+        let html = `
+            <div class="stats-calendar">
+                <div class="calendar-legend">
+                    <span class="legend-item"><span class="symbol good">○</span> 空いている</span>
+                    <span class="legend-item"><span class="symbol ok">△</span> 条件付き</span>
+                    <span class="legend-item"><span class="symbol bad">×</span> 空いていない</span>
+                </div>
+                <div class="calendar-grid">
+        `;
         
-        // Header with dates
-        html += '<div class="timeline-header">';
-        html += '<div class="member-label">メンバー</div>';
-        days.forEach(day => {
-            const date = new Date(day);
-            const dayStr = date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-            html += `<div class="day-label">${dayStr}</div>`;
+        // Create calendar grid
+        const startDate = new Date(this.currentPeriod.start);
+        const endDate = new Date(this.currentPeriod.end);
+        
+        // Get first day of the month and calculate grid
+        const firstDay = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        const lastDay = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+        
+        // Add day headers
+        html += '<div class="calendar-header">';
+        ['日', '月', '火', '水', '木', '金', '土'].forEach(day => {
+            html += `<div class="day-header">${day}</div>`;
         });
         html += '</div>';
-
-        // Member rows
-        members.forEach(memberName => {
-            html += '<div class="timeline-row">';
-            html += `<div class="member-label">${memberName}</div>`;
+        
+        // Add calendar days
+        const startOfWeek = new Date(firstDay);
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        
+        let currentDate = new Date(startOfWeek);
+        
+        while (currentDate <= lastDay || currentDate.getDay() !== 0) {
+            html += '<div class="calendar-week">';
             
-            days.forEach(day => {
-                const dayAvailability = this.getMemberDayAvailability(memberName, day);
-                const statusClass = this.getDominantStatus(dayAvailability);
-                html += `<div class="day-cell ${statusClass}" title="${memberName} - ${day}"></div>`;
-            });
+            for (let i = 0; i < 7; i++) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const isInPeriod = currentDate >= startDate && currentDate <= endDate;
+                const stats = dailyStats[dateStr] || { good: 0, ok: 0, bad: 0, total: 0 };
+                
+                let cellClass = 'calendar-day';
+                if (!isInPeriod) cellClass += ' outside-period';
+                if (currentDate.toDateString() === new Date().toDateString()) cellClass += ' today';
+                
+                html += `
+                    <div class="${cellClass}" data-date="${dateStr}">
+                        <div class="day-number">${currentDate.getDate()}</div>
+                        ${isInPeriod && stats.total > 0 ? `
+                            <div class="day-stats">
+                                ${stats.good > 0 ? `<span class="stat-count good">○${stats.good}</span>` : ''}
+                                ${stats.ok > 0 ? `<span class="stat-count ok">△${stats.ok}</span>` : ''}
+                                ${stats.bad > 0 ? `<span class="stat-count bad">×${stats.bad}</span>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
             
             html += '</div>';
-        });
-
-        html += '</div>';
+            
+            if (currentDate > lastDay && currentDate.getDay() === 0) break;
+        }
+        
+        html += '</div></div>';
         return html;
+    }
+
+    calculateDailyStats(days) {
+        const dailyStats = {};
+        
+        days.forEach(day => {
+            const stats = { good: 0, ok: 0, bad: 0, total: 0 };
+            
+            Array.from(this.members.keys()).forEach(memberName => {
+                const dayAvailability = this.getMemberDayAvailability(memberName, day);
+                dayAvailability.forEach(item => {
+                    stats[item.status]++;
+                    stats.total++;
+                });
+            });
+            
+            if (stats.total > 0) {
+                dailyStats[day] = stats;
+            }
+        });
+        
+        return dailyStats;
     }
 
     updateSummaryView() {
