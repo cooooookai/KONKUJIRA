@@ -319,6 +319,46 @@ async function getAvailability(request, env) {
 }
 
 /**
+ * DELETE /events/:id - Delete event by ID
+ */
+async function deleteEvent(request, env, eventId) {
+  try {
+    // Validate event ID
+    if (!eventId || eventId.trim() === '') {
+      return errorResponse('Event ID is required', 400, request, env);
+    }
+    
+    // Check if event exists
+    const checkQuery = `SELECT id, created_by FROM events WHERE id = ?`;
+    const { results: existingEvents } = await env.DB.prepare(checkQuery)
+      .bind(eventId)
+      .all();
+    
+    if (existingEvents.length === 0) {
+      return errorResponse('Event not found', 404, request, env);
+    }
+    
+    // Delete the event
+    const deleteQuery = `DELETE FROM events WHERE id = ?`;
+    const result = await env.DB.prepare(deleteQuery)
+      .bind(eventId)
+      .run();
+    
+    if (!result.success) {
+      return errorResponse('Failed to delete event', 500, request, env);
+    }
+    
+    return successResponse({ 
+      message: 'Event deleted successfully',
+      deletedId: eventId
+    }, 200, request, env);
+    
+  } catch (error) {
+    return errorResponse(error.message, 400, request, env);
+  }
+}
+
+/**
  * POST /availability - Upsert availability data
  */
 async function upsertAvailability(request, env) {
@@ -406,6 +446,11 @@ export default {
         } else if (method === 'POST') {
           return await createEvent(request, env);
         }
+      } else if (pathname.startsWith('/events/')) {
+        const eventId = pathname.split('/')[2];
+        if (method === 'DELETE') {
+          return await deleteEvent(request, env, eventId);
+        }
       } else if (pathname === '/availability') {
         if (method === 'GET') {
           return await getAvailability(request, env);
@@ -418,6 +463,7 @@ export default {
           version: '1.0.0',
           endpoints: [
             'GET/POST /events',
+            'DELETE /events/:id',
             'GET/POST /availability'
           ]
         }, 200, request, env);

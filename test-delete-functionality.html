@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>删除功能测试 - Band Sync Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link href="css/styles.css" rel="stylesheet" />
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .delete-button {
+            background: #dc3545;
+        }
+        
+        .delete-button:hover {
+            background: #c82333;
+        }
+        
+        .status-display {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        
+        .calendar-container {
+            margin-top: 20px;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🗑️ 删除功能测试</h1>
+            <p>测试Band Sync Calendar的事件删除功能</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 使用说明</h3>
+            <ol>
+                <li>首先创建一个测试事件</li>
+                <li>在日历中点击事件查看详情</li>
+                <li>如果你是事件创建者或COKAI用户，会看到删除按钮</li>
+                <li>点击删除按钮确认删除</li>
+                <li>事件将从日历中消失</li>
+            </ol>
+            <p><strong>权限说明:</strong> 只有事件创建者或COKAI用户可以删除事件</p>
+        </div>
+        
+        <div class="test-section">
+            <h3>🧪 测试操作</h3>
+            <button class="test-button" onclick="createTestEvent()">创建测试事件</button>
+            <button class="test-button" onclick="loadCalendar()">刷新日历</button>
+            <button class="test-button" onclick="setNickname('COKAI')">设置为COKAI用户</button>
+            <button class="test-button" onclick="setNickname('テスト太郎')">设置为テスト太郎用户</button>
+            <div id="status" class="status-display">点击按钮开始测试...</div>
+        </div>
+        
+        <div class="calendar-container">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    
+    <!-- Application JS -->
+    <script src="js/config.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/calendar.js"></script>
+    
+    <script>
+        let calendar = null;
+        
+        // Initialize calendar
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                height: 'auto',
+                events: [],
+                eventClick: function(info) {
+                    // Use the calendar manager's event click handler
+                    calendarManager.handleEventClick(info);
+                }
+            });
+            
+            calendar.render();
+            
+            // Initialize calendar manager
+            calendarManager.calendar = calendar;
+            
+            // Load initial data
+            loadCalendar();
+        });
+        
+        // Set nickname
+        function setNickname(nickname) {
+            storage.setNickname(nickname);
+            updateStatus(`✅ 用户设置为: ${nickname}`);
+        }
+        
+        // Create test event
+        async function createTestEvent() {
+            const nickname = storage.getNickname();
+            if (!nickname) {
+                updateStatus('❌ 请先设置用户名');
+                return;
+            }
+            
+            updateStatus('📝 创建测试事件...');
+            
+            try {
+                const eventData = {
+                    title: `${nickname}的测试事件`,
+                    type: 'other',
+                    start_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+                    end_time: new Date(Date.now() + 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(), // +2 hours
+                    created_by: nickname
+                };
+                
+                const result = await apiClient.createEvent(eventData);
+                updateStatus(`✅ 测试事件创建成功! ID: ${result.id}`);
+                
+                // Refresh calendar
+                await loadCalendar();
+                
+            } catch (error) {
+                updateStatus(`❌ 创建事件失败: ${error.message}`);
+            }
+        }
+        
+        // Load calendar data
+        async function loadCalendar() {
+            if (!calendar) return;
+            
+            updateStatus('🔄 加载日历数据...');
+            
+            try {
+                const { start, end } = getSyncPeriod();
+                
+                // Get events and availability
+                const [events, availability] = await Promise.all([
+                    apiClient.getEvents(start, end),
+                    apiClient.getAvailability(start, end)
+                ]);
+                
+                // Combine data
+                const allEvents = [...events, ...availability];
+                
+                // Update calendar
+                calendar.removeAllEvents();
+                calendar.addEventSource(allEvents);
+                
+                updateStatus(`✅ 日历加载完成! 共 ${allEvents.length} 个项目\n事件: ${events.length} 个\n可用性: ${availability.length} 个`);
+                
+            } catch (error) {
+                updateStatus(`❌ 加载失败: ${error.message}`);
+            }
+        }
+        
+        // Update status display
+        function updateStatus(message) {
+            const statusEl = document.getElementById('status');
+            const timestamp = new Date().toLocaleTimeString();
+            statusEl.textContent = `[${timestamp}] ${message}`;
+        }
+        
+        // Override calendar manager's showSuccess method for testing
+        if (typeof calendarManager !== 'undefined') {
+            calendarManager.showSuccess = function(message) {
+                updateStatus(`✅ ${message}`);
+            };
+            
+            calendarManager.showError = function(message) {
+                updateStatus(`❌ ${message}`);
+            };
+        }
+    </script>
+</body>
+</html>
