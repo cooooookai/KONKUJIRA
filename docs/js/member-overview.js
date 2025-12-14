@@ -149,19 +149,53 @@ class MemberOverview {
 
     async loadData() {
         try {
-            // Load availability data
-            const availabilityData = await apiClient.getAvailability(
-                this.currentPeriod.start + 'T00:00:00',
-                this.currentPeriod.end + 'T23:59:59'
-            );
+            // Load availability data for all members
+            const allAvailabilityData = [];
+            const memberNames = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI', 'テスト', 'USER'];
+            
+            for (const memberName of memberNames) {
+                try {
+                    // Temporarily set nickname to fetch each member's data
+                    const originalNickname = storage.getNickname();
+                    storage.setNickname(memberName);
+                    
+                    const memberData = await apiClient.getAvailability(
+                        this.currentPeriod.start,
+                        this.currentPeriod.end
+                    );
+                    
+                    // Add member name to each record
+                    if (memberData && memberData.data) {
+                        memberData.data.forEach(item => {
+                            item.member_name = memberName;
+                            allAvailabilityData.push(item);
+                        });
+                    }
+                    
+                    // Restore original nickname
+                    if (originalNickname) {
+                        storage.setNickname(originalNickname);
+                    }
+                } catch (error) {
+                    console.warn(`Failed to load data for ${memberName}:`, error);
+                }
+            }
 
-            // Load events data
-            const eventsData = await apiClient.getEvents(
-                this.currentPeriod.start + 'T00:00:00',
-                this.currentPeriod.end + 'T23:59:59'
-            );
+            // Load events data (if needed)
+            const eventsData = [];
+            try {
+                const events = await apiClient.getEvents(
+                    this.currentPeriod.start,
+                    this.currentPeriod.end
+                );
+                if (events && events.data) {
+                    eventsData.push(...events.data);
+                }
+            } catch (error) {
+                console.warn('Failed to load events:', error);
+            }
 
-            this.processData(availabilityData, eventsData);
+            this.processData(allAvailabilityData, eventsData);
             this.updateViews();
         } catch (error) {
             console.error('Failed to load overview data:', error);

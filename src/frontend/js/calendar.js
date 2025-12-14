@@ -87,6 +87,11 @@ class CalendarManager {
             // Render calendar
             this.calendar.render();
             
+            // Trigger calendar rendered event for stats overlay
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('calendar-rendered'));
+            }, 100);
+            
             // Set up responsive handling
             this.setupResponsiveHandling();
             

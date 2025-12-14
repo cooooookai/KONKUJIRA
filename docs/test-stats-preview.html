@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统计预览测试 - Band Sync Calendar</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #28a745;
+        }
+        .step h4 {
+            margin: 0 0 10px 0;
+            color: #28a745;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .feature-demo {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 2px dashed #007bff;
+        }
+        .button-demo {
+            display: inline-block;
+            background: #6c5ce7;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 5px;
+            font-weight: 500;
+        }
+        .button-demo.active {
+            background: #00b894;
+        }
+        .stats-example {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .stat-example {
+            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        }
+        .stat-example.good { background: #27ae60; }
+        .stat-example.ok { background: #f39c12; }
+        .stat-example.bad { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>📊 Band Sync Calendar - 统计预览功能测试</h1>
+    
+    <div class="test-section">
+        <h2>🎯 新增功能：统计叠加层</h2>
+        <p>我添加了一个新的统计预览功能，可以直接在主日历上显示每天的○×△统计数据。</p>
+        
+        <div class="feature-demo">
+            <h4>📊 统计按钮示例</h4>
+            <span class="button-demo">📊 統計</span> → 
+            <span class="button-demo active">📊 統計 ON</span>
+            
+            <h4>📅 日历统计显示示例</h4>
+            <div style="position: relative; width: 60px; height: 40px; border: 1px solid #ddd; margin: 10px 0;">
+                <span style="position: absolute; top: 2px; left: 2px; font-size: 14px;">15</span>
+                <div style="position: absolute; bottom: 2px; right: 2px;">
+                    <div class="stats-example">
+                        <span class="stat-example good">○2</span>
+                        <span class="stat-example ok">△1</span>
+                        <span class="stat-example bad">×1</span>
+                    </div>
+                </div>
+            </div>
+            <p><small>↑ 这样的统计信息会显示在每个有数据的日期上</small></p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        
+        <div class="step">
+            <h4>步骤 1: 添加测试数据</h4>
+            <ol>
+                <li>打开主应用：<a href="index.html" target="_blank">Band Sync Calendar</a></li>
+                <li>选择不同的用户（COKAI, YUSUKE, ZEN等）</li>
+                <li>为每个用户添加一些可用性数据（○×△）</li>
+                <li>确保在不同日期添加数据</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h4>步骤 2: 启用统计显示</h4>
+            <ol>
+                <li>在主日历页面，查找顶部的 <strong>"📊 統計"</strong> 按钮</li>
+                <li>点击按钮，它应该变为 <strong>"📊 統計 ON"</strong></li>
+                <li>等待几秒钟加载数据</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h4>步骤 3: 验证统计显示</h4>
+            <ol>
+                <li>检查日历上有数据的日期</li>
+                <li>应该在日期右下角看到统计信息：
+                    <div class="stats-example">
+                        <span class="stat-example good">○2</span>
+                        <span class="stat-example ok">△1</span>
+                        <span class="stat-example bad">×3</span>
+                    </div>
+                </li>
+                <li>数字表示该状态的用户数量</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h4>步骤 4: 测试实时更新</h4>
+            <ol>
+                <li>保持统计模式开启</li>
+                <li>添加新的可用性数据</li>
+                <li>统计应该自动更新</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 预期结果</h2>
+        <ul>
+            <li>✅ 统计按钮正常显示和切换</li>
+            <li>✅ 日历上显示正确的统计数字</li>
+            <li>✅ 不同状态用不同颜色显示</li>
+            <li>✅ 添加新数据后统计自动更新</li>
+            <li>✅ 移动设备上显示正常</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <strong>⚠️ 如果统计不显示：</strong><br>
+        1. 确保已经添加了多个用户的数据<br>
+        2. 检查浏览器控制台是否有错误<br>
+        3. 尝试刷新页面后重新启用统计<br>
+        4. 确认数据已经保存到服务器
+    </div>
+
+    <div class="test-section">
+        <h2>🎨 设计特点</h2>
+        <ul>
+            <li><strong>非侵入式</strong>：统计信息不影响正常日历使用</li>
+            <li><strong>可切换</strong>：可以随时开启/关闭统计显示</li>
+            <li><strong>实时更新</strong>：数据变化时自动刷新</li>
+            <li><strong>颜色编码</strong>：绿色○、橙色△、红色×</li>
+            <li><strong>移动友好</strong>：在小屏幕上也能清晰显示</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0;">
+        <a href="index.html" style="
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 0 10px;
+        ">🚀 测试主应用</a>
+        
+        <a href="test-user-selection.html" style="
+            display: inline-block;
+            background: #6c5ce7;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 0 10px;
+        ">👥 用户选择测试</a>
+    </div>
+</body>
+</html>
