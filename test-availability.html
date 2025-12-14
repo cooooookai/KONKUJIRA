@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空き状況入力テスト</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .time-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .status-selection {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .status-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            min-height: 80px;
+        }
+        
+        .status-btn:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+        
+        .status-btn.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .status-symbol {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .submit-btn:not(:disabled):hover {
+            background: #2980b9;
+        }
+        
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #e8f5e8;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>空き状況入力テスト</h2>
+        <p><strong>新しい動作:</strong></p>
+        <ul>
+            <li><strong>○（空いている）</strong>: 時間入力不要、選択後すぐ提出可能</li>
+            <li><strong>△（調整可能）</strong>: 時間入力不要、選択後すぐ提出可能</li>
+            <li><strong>×（忙しい）</strong>: 時間入力不要、選択後すぐ提出可能</li>
+        </ul>
+        <p><strong>すべての状態で時間入力は任意です。時間を入力しない場合は全日（00:00-23:59）として扱われます。</strong></p>
+        
+        <form id="test-form">
+            <div class="form-group">
+                <label for="start-time">開始時刻</label>
+                <input type="time" id="start-time" class="time-input" value="19:00">
+            </div>
+            
+            <div class="form-group">
+                <label for="end-time">終了時刻</label>
+                <input type="time" id="end-time" class="time-input" value="21:00">
+            </div>
+            
+            <div class="form-group">
+                <label>空き状況</label>
+                <div class="status-selection">
+                    <button type="button" class="status-btn" data-status="good">
+                        <span class="status-symbol">○</span>
+                        <span class="status-label">空いている</span>
+                    </button>
+                    <button type="button" class="status-btn" data-status="ok">
+                        <span class="status-symbol">△</span>
+                        <span class="status-label">調整可能</span>
+                    </button>
+                    <button type="button" class="status-btn" data-status="bad">
+                        <span class="status-symbol">×</span>
+                        <span class="status-label">忙しい</span>
+                    </button>
+                </div>
+                <div id="status-error" class="error"></div>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submit-btn" disabled>
+                保存
+            </button>
+        </form>
+        
+        <div id="result" class="result">
+            <h3>提出結果:</h3>
+            <div id="result-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // 状态选择逻辑
+        const statusButtons = document.querySelectorAll('.status-btn');
+        const startTimeInput = document.getElementById('start-time');
+        const endTimeInput = document.getElementById('end-time');
+        const submitBtn = document.getElementById('submit-btn');
+        const statusError = document.getElementById('status-error');
+        const result = document.getElementById('result');
+        const resultContent = document.getElementById('result-content');
+        
+        let selectedStatus = null;
+        
+        // 状态按钮点击事件
+        statusButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 清除之前的选择
+                statusButtons.forEach(b => b.classList.remove('selected'));
+                
+                // 选择当前按钮
+                btn.classList.add('selected');
+                selectedStatus = btn.dataset.status;
+                
+                // 根据状态调整时间输入的显示
+                const timeInputs = document.querySelectorAll('.time-input');
+                const timeLabels = document.querySelectorAll('label[for="start-time"], label[for="end-time"]');
+                
+                // 所有状态的时间输入都是可选的
+                timeInputs.forEach(input => {
+                    input.style.opacity = '0.8';
+                    input.required = false;
+                });
+                timeLabels.forEach(label => {
+                    label.style.opacity = '0.8';
+                    if (!label.innerHTML.includes('(可选)')) {
+                        label.innerHTML += ' (可选)';
+                    }
+                });
+                
+                // 验证表单
+                validateForm();
+            });
+        });
+        
+        // 时间输入验证
+        startTimeInput.addEventListener('input', validateForm);
+        endTimeInput.addEventListener('input', validateForm);
+        
+        function validateForm() {
+            const startTime = startTimeInput.value;
+            const endTime = endTimeInput.value;
+            
+            let isValid = true;
+            statusError.textContent = '';
+            
+            // 必须选择状态
+            if (!selectedStatus) {
+                statusError.textContent = '空き状況を選択してください';
+                isValid = false;
+            } else {
+                // 如果输入了时间，需要验证时间范围
+                if (startTime && endTime && startTime >= endTime) {
+                    statusError.textContent = '終了時刻は開始時刻より後である必要があります';
+                    isValid = false;
+                }
+                // 如果只输入了一个时间字段，提示需要输入另一个
+                else if (startTime && !endTime) {
+                    statusError.textContent = '終了時刻も入力してください';
+                    isValid = false;
+                }
+                else if (!startTime && endTime) {
+                    statusError.textContent = '開始時刻も入力してください';
+                    isValid = false;
+                }
+            }
+            
+            submitBtn.disabled = !isValid;
+        }
+        
+        // 表单提交
+        document.getElementById('test-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const startTime = startTimeInput.value;
+            const endTime = endTimeInput.value;
+            
+            const statusLabels = {
+                'good': '○ 空いている',
+                'ok': '△ 調整可能', 
+                'bad': '× 忙しい'
+            };
+            
+            let timeDisplay = '';
+            if (startTime && endTime) {
+                timeDisplay = `
+                    <p><strong>開始時刻:</strong> ${startTime}</p>
+                    <p><strong>終了時刻:</strong> ${endTime}</p>
+                `;
+            } else {
+                timeDisplay = `<p><strong>時間:</strong> 全日 (00:00-23:59)</p>`;
+            }
+            
+            resultContent.innerHTML = `
+                ${timeDisplay}
+                <p><strong>状況:</strong> ${statusLabels[selectedStatus]}</p>
+                <p style="color: #27ae60; font-weight: bold;">✅ 正常に提出されました！</p>
+            `;
+            
+            result.style.display = 'block';
+            
+            // 重置表单
+            setTimeout(() => {
+                statusButtons.forEach(b => b.classList.remove('selected'));
+                selectedStatus = null;
+                validateForm();
+                result.style.display = 'none';
+            }, 3000);
+        });
+        
+        // 初始验证
+        validateForm();
+    </script>
+</body>
+</html>

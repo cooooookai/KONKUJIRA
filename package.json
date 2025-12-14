@@ -1,0 +1,25 @@
+{
+  "name": "band-sync-calendar",
+  "version": "1.0.0",
+  "description": "Band Sync Calendar - Real-time collaborative calendar for band members",
+  "main": "src/backend/worker.js",
+  "scripts": {
+    "verify": "node verify-deployment.js",
+    "test-api": "node src/backend/test-api.js",
+    "deploy": "./quick-deploy.sh",
+    "dev": "wrangler dev",
+    "deploy-worker": "wrangler deploy --env production",
+    "setup-db": "wrangler d1 execute band-sync-calendar-db --file=./src/backend/schema.sql --env production"
+  },
+  "keywords": [
+    "calendar",
+    "band",
+    "collaboration",
+    "cloudflare-workers",
+    "github-pages"
+  ],
+  "author": "coookai",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

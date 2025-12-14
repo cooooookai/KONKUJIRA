@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メンバー選択テスト - バンド同期カレンダー</title>
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    <style>
+        body {
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-info {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #3498db;
+        }
+        .current-member {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        .test-btn {
+            padding: 0.75rem 1.5rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s ease;
+        }
+        .test-btn:hover {
+            background: #2980b9;
+        }
+        .test-btn.secondary {
+            background: #95a5a6;
+        }
+        .test-btn.secondary:hover {
+            background: #7f8c8d;
+        }
+        .member-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .member-item {
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+            border: 2px solid transparent;
+        }
+        .member-item.current {
+            background: #e8f5e8;
+            border-color: #27ae60;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎵 メンバー選択機能テスト</h1>
+        
+        <div class="test-info">
+            <h3>📋 テスト内容</h3>
+            <p>新しいメンバー選択機能をテストします。以下の6人のメンバーから選択できます：</p>
+            <div class="member-list">
+                <div class="member-item">COKAI</div>
+                <div class="member-item">YUSUKE</div>
+                <div class="member-item">ZEN</div>
+                <div class="member-item">YAMCHI</div>
+                <div class="member-item">テスト</div>
+                <div class="member-item">USER</div>
+            </div>
+            <p><strong>重要:</strong> 同じメンバーで新しいデータを保存すると、以前のデータは上書きされます。</p>
+        </div>
+
+        <div class="current-member">
+            <strong>現在のメンバー:</strong> <span id="current-member-display">未選択</span>
+        </div>
+
+        <div class="test-buttons">
+            <button class="test-btn" onclick="showMemberSelection()">
+                👥 メンバー選択
+            </button>
+            <button class="test-btn secondary" onclick="changeMember()">
+                🔄 メンバー変更
+            </button>
+            <button class="test-btn secondary" onclick="clearMember()">
+                🗑️ メンバークリア
+            </button>
+            <button class="test-btn secondary" onclick="refreshDisplay()">
+                🔄 表示更新
+            </button>
+        </div>
+
+        <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+            <h4>🧪 テスト手順</h4>
+            <ol>
+                <li>「メンバー選択」ボタンをクリック</li>
+                <li>ドロップダウンからメンバーを選択</li>
+                <li>「選択」ボタンをクリック</li>
+                <li>ウェルカムメッセージが表示されることを確認</li>
+                <li>「メンバー変更」で別のメンバーに変更してみる</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Member Selection Modal -->
+    <div id="nickname-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>メンバーを選択してください</h2>
+            <div class="member-selection">
+                <select id="member-select" class="member-select">
+                    <option value="">メンバーを選択...</option>
+                    <option value="COKAI">COKAI</option>
+                    <option value="YUSUKE">YUSUKE</option>
+                    <option value="ZEN">ZEN</option>
+                    <option value="YAMCHI">YAMCHI</option>
+                    <option value="テスト">テスト</option>
+                    <option value="USER">USER</option>
+                </select>
+            </div>
+            <button id="nickname-submit" disabled>選択</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/frontend/js/config.js"></script>
+    <script src="src/frontend/js/storage.js"></script>
+    <script src="src/frontend/js/nickname.js"></script>
+
+    <script>
+        // Test functions
+        function showMemberSelection() {
+            if (typeof showNicknameModal === 'function') {
+                showNicknameModal(() => {
+                    refreshDisplay();
+                    console.log('Member selection completed');
+                });
+            } else {
+                alert('メンバー選択機能が利用できません');
+            }
+        }
+
+        function changeMember() {
+            if (typeof nicknameManager !== 'undefined' && nicknameManager.showChangeDialog) {
+                nicknameManager.showChangeDialog();
+                setTimeout(refreshDisplay, 500);
+            } else {
+                alert('メンバー変更機能が利用できません');
+            }
+        }
+
+        function clearMember() {
+            if (confirm('現在のメンバー選択をクリアしますか？')) {
+                if (typeof nicknameManager !== 'undefined' && nicknameManager.clearNickname) {
+                    const success = nicknameManager.clearNickname();
+                    if (success) {
+                        refreshDisplay();
+                        alert('メンバー選択をクリアしました');
+                    } else {
+                        alert('クリアに失敗しました');
+                    }
+                } else {
+                    alert('クリア機能が利用できません');
+                }
+            }
+        }
+
+        function refreshDisplay() {
+            const currentMember = storage && storage.getNickname ? storage.getNickname() : null;
+            const display = document.getElementById('current-member-display');
+            
+            if (display) {
+                display.textContent = currentMember || '未選択';
+                display.style.color = currentMember ? '#27ae60' : '#e74c3c';
+            }
+
+            // Update member list highlighting
+            document.querySelectorAll('.member-item').forEach(item => {
+                item.classList.toggle('current', item.textContent === currentMember);
+            });
+
+            console.log('Current member:', currentMember);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Member selection test page loaded');
+            
+            // Initialize storage if available
+            if (typeof storage !== 'undefined' && storage.initialize) {
+                storage.initialize().then(() => {
+                    refreshDisplay();
+                }).catch(error => {
+                    console.error('Storage initialization failed:', error);
+                });
+            } else {
+                refreshDisplay();
+            }
+        });
+
+        // Auto-refresh display every 2 seconds
+        setInterval(refreshDisplay, 2000);
+    </script>
+</body>
+</html>
