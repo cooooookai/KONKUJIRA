@@ -266,103 +266,43 @@ class MemberOverview {
             return;
         }
 
-        // Create calendar-style statistics view
-        const calendarHtml = this.createStatsCalendar();
-        container.innerHTML = calendarHtml;
+        // Create a simple timeline visualization
+        const timelineHtml = this.createTimelineChart();
+        container.innerHTML = timelineHtml;
     }
 
-    createStatsCalendar() {
+    createTimelineChart() {
         const days = this.getDaysInPeriod();
-        const dailyStats = this.calculateDailyStats(days);
+        const members = Array.from(this.members.keys());
 
-        let html = `
-            <div class="stats-calendar">
-                <div class="calendar-legend">
-                    <span class="legend-item"><span class="symbol good">○</span> 空いている</span>
-                    <span class="legend-item"><span class="symbol ok">△</span> 条件付き</span>
-                    <span class="legend-item"><span class="symbol bad">×</span> 空いていない</span>
-                </div>
-                <div class="calendar-grid">
-        `;
+        let html = '<div class="timeline-grid">';
         
-        // Create calendar grid
-        const startDate = new Date(this.currentPeriod.start);
-        const endDate = new Date(this.currentPeriod.end);
-        
-        // Get first day of the month and calculate grid
-        const firstDay = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-        const lastDay = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
-        
-        // Add day headers
-        html += '<div class="calendar-header">';
-        ['日', '月', '火', '水', '木', '金', '土'].forEach(day => {
-            html += `<div class="day-header">${day}</div>`;
+        // Header with dates
+        html += '<div class="timeline-header">';
+        html += '<div class="member-label">メンバー</div>';
+        days.forEach(day => {
+            const date = new Date(day);
+            const dayStr = date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+            html += `<div class="day-label">${dayStr}</div>`;
         });
         html += '</div>';
-        
-        // Add calendar days
-        const startOfWeek = new Date(firstDay);
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-        
-        let currentDate = new Date(startOfWeek);
-        
-        while (currentDate <= lastDay || currentDate.getDay() !== 0) {
-            html += '<div class="calendar-week">';
-            
-            for (let i = 0; i < 7; i++) {
-                const dateStr = currentDate.toISOString().split('T')[0];
-                const isInPeriod = currentDate >= startDate && currentDate <= endDate;
-                const stats = dailyStats[dateStr] || { good: 0, ok: 0, bad: 0, total: 0 };
-                
-                let cellClass = 'calendar-day';
-                if (!isInPeriod) cellClass += ' outside-period';
-                if (currentDate.toDateString() === new Date().toDateString()) cellClass += ' today';
-                
-                html += `
-                    <div class="${cellClass}" data-date="${dateStr}">
-                        <div class="day-number">${currentDate.getDate()}</div>
-                        ${isInPeriod && stats.total > 0 ? `
-                            <div class="day-stats">
-                                ${stats.good > 0 ? `<span class="stat-count good">○${stats.good}</span>` : ''}
-                                ${stats.ok > 0 ? `<span class="stat-count ok">△${stats.ok}</span>` : ''}
-                                ${stats.bad > 0 ? `<span class="stat-count bad">×${stats.bad}</span>` : ''}
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-            
-            html += '</div>';
-            
-            if (currentDate > lastDay && currentDate.getDay() === 0) break;
-        }
-        
-        html += '</div></div>';
-        return html;
-    }
 
-    calculateDailyStats(days) {
-        const dailyStats = {};
-        
-        days.forEach(day => {
-            const stats = { good: 0, ok: 0, bad: 0, total: 0 };
+        // Member rows
+        members.forEach(memberName => {
+            html += '<div class="timeline-row">';
+            html += `<div class="member-label">${memberName}</div>`;
             
-            Array.from(this.members.keys()).forEach(memberName => {
+            days.forEach(day => {
                 const dayAvailability = this.getMemberDayAvailability(memberName, day);
-                dayAvailability.forEach(item => {
-                    stats[item.status]++;
-                    stats.total++;
-                });
+                const statusClass = this.getDominantStatus(dayAvailability);
+                html += `<div class="day-cell ${statusClass}" title="${memberName} - ${day}"></div>`;
             });
             
-            if (stats.total > 0) {
-                dailyStats[day] = stats;
-            }
+            html += '</div>';
         });
-        
-        return dailyStats;
+
+        html += '</div>';
+        return html;
     }
 
     updateSummaryView() {

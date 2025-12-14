@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户选择测试 - Band Sync Calendar</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .feature-list {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        .feature-item::before {
+            content: "✅";
+            margin-right: 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .warning::before {
+            content: "⚠️ ";
+            font-weight: bold;
+        }
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .user-card {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            font-weight: 500;
+        }
+        .stats-preview {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .calendar-mini {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin: 10px 0;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            position: relative;
+        }
+        .calendar-day.has-data {
+            background: #e3f2fd;
+        }
+        .stat-indicator {
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            font-size: 8px;
+        }
+        .good { color: #27ae60; }
+        .ok { color: #f39c12; }
+        .bad { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>🎵 Band Sync Calendar - 用户选择功能测试</h1>
+    
+    <div class="test-section">
+        <h2>📋 新功能概述</h2>
+        <div class="feature-list">
+            <div class="feature-item">固定用户列表：从6个预设用户中选择</div>
+            <div class="feature-item">数据覆盖机制：相同用户的新数据会覆盖旧数据</div>
+            <div class="feature-item">统计预览：日历格式显示○×△数量</div>
+            <div class="feature-item">用户隔离：不同用户的数据互不影响</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>👥 固定用户列表</h2>
+        <p>系统现在只允许从以下6个用户中选择：</p>
+        <div class="user-list">
+            <div class="user-card">COKAI</div>
+            <div class="user-card">YUSUKE</div>
+            <div class="user-card">ZEN</div>
+            <div class="user-card">YAMCHI</div>
+            <div class="user-card">テスト</div>
+            <div class="user-card">USER</div>
+        </div>
+        
+        <div class="warning">
+            <strong>数据覆盖警告：</strong>
+            当选择相同用户并保存新数据时，该用户的所有旧数据将被完全覆盖且无法恢复。
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 统计预览功能</h2>
+        <p>新的"概览"按钮将显示日历格式的统计信息：</p>
+        
+        <div class="stats-preview">
+            <h4>📅 统计日历示例</h4>
+            <div class="calendar-mini">
+                <div class="calendar-day">1</div>
+                <div class="calendar-day">2</div>
+                <div class="calendar-day has-data">3<span class="stat-indicator good">○2</span></div>
+                <div class="calendar-day has-data">4<span class="stat-indicator ok">△1</span></div>
+                <div class="calendar-day has-data">5<span class="stat-indicator bad">×3</span></div>
+                <div class="calendar-day">6</div>
+                <div class="calendar-day">7</div>
+            </div>
+            
+            <div class="feature-list">
+                <div class="feature-item"><span class="good">○</span> 绿色数字 = 空闲的用户数量</div>
+                <div class="feature-item"><span class="ok">△</span> 橙色数字 = 条件性空闲的用户数量</div>
+                <div class="feature-item"><span class="bad">×</span> 红色数字 = 忙碌的用户数量</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 测试步骤</h2>
+        <ol>
+            <li><strong>用户选择测试：</strong>
+                <ul>
+                    <li>打开主页面，应该显示用户选择模态框</li>
+                    <li>确认只能从6个固定用户中选择</li>
+                    <li>选择用户后查看欢迎消息和覆盖警告</li>
+                </ul>
+            </li>
+            
+            <li><strong>数据覆盖测试：</strong>
+                <ul>
+                    <li>以用户A身份添加一些可用性数据</li>
+                    <li>切换到用户B，添加不同的数据</li>
+                    <li>再次切换回用户A，添加新数据</li>
+                    <li>确认用户A的旧数据被覆盖，用户B的数据不受影响</li>
+                </ul>
+            </li>
+            
+            <li><strong>统计预览测试：</strong>
+                <ul>
+                    <li>添加多个用户的可用性数据</li>
+                    <li>点击"概览"按钮查看统计日历</li>
+                    <li>确认每天显示正确的○×△数量</li>
+                    <li>点击日期查看详细信息</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 预期行为</h2>
+        <div class="feature-list">
+            <div class="feature-item">用户选择界面友好，有明确的覆盖警告</div>
+            <div class="feature-item">数据隔离正确，不同用户数据互不干扰</div>
+            <div class="feature-item">统计日历清晰显示每天的状态分布</div>
+            <div class="feature-item">移动设备上界面适配良好</div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0;">
+        <a href="index.html" style="
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+        ">🚀 开始测试主应用</a>
+    </div>
+</body>
+</html>

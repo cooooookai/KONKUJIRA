@@ -144,10 +144,9 @@ class NicknameManager {
     }
     
     showWelcomeMessage(memberName) {
-        // Show a brief welcome message with data overwrite warning
+        // Show a brief welcome message
         setTimeout(() => {
-            const message = `ようこそ、${memberName}さん！\n\n⚠️ 重要な注意事項:\n• 同じユーザーで新しいデータを保存すると、以前のデータは完全に上書きされます\n• データの復元はできませんので、ご注意ください\n• 他のユーザーのデータには影響しません`;
-            alert(message);
+            alert(`ようこそ、${memberName}さん！\n\n同じメンバーで新しいデータを保存すると、以前のデータは上書きされます。`);
         }, 500);
     }
     
