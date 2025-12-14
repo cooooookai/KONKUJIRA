@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可用性显示测试 - Band Sync Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .test-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .api-test {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-container {
+            margin-top: 20px;
+        }
+        
+        /* Availability styling */
+        .availability-good {
+            background-color: rgba(76, 175, 80, 0.3) !important;
+            border-color: #4CAF50 !important;
+        }
+        
+        .availability-ok {
+            background-color: rgba(255, 193, 7, 0.3) !important;
+            border-color: #FFC107 !important;
+        }
+        
+        .availability-bad {
+            background-color: rgba(244, 67, 54, 0.3) !important;
+            border-color: #F44336 !important;
+        }
+        
+        .test-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #1976D2;
+        }
+        
+        .status-display {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 可用性显示测试</h1>
+            <p>测试COKAI用户14号圆圈(○)的显示问题</p>
+        </div>
+        
+        <div class="test-info">
+            <h3>📋 测试信息</h3>
+            <p><strong>问题:</strong> COKAI用户保存了14号的圆圈(○)，但在日历预览中没有显示</p>
+            <p><strong>预期:</strong> 14号应该显示 "COKAI: ○" 的背景事件</p>
+            <p><strong>API URL:</strong> https://band-sync-calendar-production.cooooookai.workers.dev</p>
+        </div>
+        
+        <div class="api-test">
+            <h3>🔍 API数据测试</h3>
+            <button class="test-button" onclick="testAPI()">测试API数据</button>
+            <button class="test-button" onclick="loadCalendar()">加载日历</button>
+            <button class="test-button" onclick="clearCalendar()">清空日历</button>
+            <div id="api-status" class="status-display">点击"测试API数据"查看原始数据...</div>
+        </div>
+        
+        <div class="calendar-container">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    
+    <script>
+        const API_BASE_URL = 'https://band-sync-calendar-production.cooooookai.workers.dev';
+        let calendar = null;
+        
+        // Initialize calendar
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                height: 'auto',
+                events: []
+            });
+            
+            calendar.render();
+        });
+        
+        // Test API data
+        async function testAPI() {
+            const statusEl = document.getElementById('api-status');
+            statusEl.textContent = '正在获取API数据...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/availability?start=2025-12-14&end=2025-12-15`);
+                const data = await response.json();
+                
+                statusEl.textContent = `API响应 (${response.status}):\n${JSON.stringify(data, null, 2)}`;
+                
+                // 查找COKAI的数据
+                const cokaiData = data.filter(item => 
+                    item.extendedProps && item.extendedProps.memberName === 'COKAI'
+                );
+                
+                if (cokaiData.length > 0) {
+                    statusEl.textContent += `\n\n✅ 找到COKAI的数据 (${cokaiData.length}条):\n${JSON.stringify(cokaiData, null, 2)}`;
+                } else {
+                    statusEl.textContent += '\n\n❌ 没有找到COKAI的数据';
+                }
+                
+            } catch (error) {
+                statusEl.textContent = `❌ API错误: ${error.message}`;
+            }
+        }
+        
+        // Load calendar with API data
+        async function loadCalendar() {
+            if (!calendar) return;
+            
+            const statusEl = document.getElementById('api-status');
+            statusEl.textContent = '正在加载日历数据...';
+            
+            try {
+                // Get availability data
+                const availResponse = await fetch(`${API_BASE_URL}/availability?start=2025-12-14&end=2025-12-15`);
+                const availability = await availResponse.json();
+                
+                // Get events data
+                const eventsResponse = await fetch(`${API_BASE_URL}/events?start=2025-12-14&end=2025-12-15`);
+                const events = await eventsResponse.json();
+                
+                // Combine all data
+                const allEvents = [...availability, ...events];
+                
+                // Clear existing events
+                calendar.removeAllEvents();
+                
+                // Add new events
+                calendar.addEventSource(allEvents);
+                
+                statusEl.textContent = `✅ 日历加载完成！\n加载了 ${allEvents.length} 个事件\n可用性数据: ${availability.length} 条\n事件数据: ${events.length} 条`;
+                
+                // 特别检查COKAI的数据
+                const cokaiEvents = allEvents.filter(event => 
+                    event.extendedProps && event.extendedProps.memberName === 'COKAI'
+                );
+                
+                if (cokaiEvents.length > 0) {
+                    statusEl.textContent += `\n\n🎯 COKAI的事件已加载 (${cokaiEvents.length}条):`;
+                    cokaiEvents.forEach(event => {
+                        statusEl.textContent += `\n- ${event.title} (${event.start} - ${event.end})`;
+                    });
+                }
+                
+            } catch (error) {
+                statusEl.textContent = `❌ 加载错误: ${error.message}`;
+            }
+        }
+        
+        // Clear calendar
+        function clearCalendar() {
+            if (calendar) {
+                calendar.removeAllEvents();
+                document.getElementById('api-status').textContent = '日历已清空';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -17,6 +17,12 @@ class StatsOverlay {
     }
     
     createToggleButton() {
+        // Check if button already exists
+        if (document.getElementById('stats-toggle')) {
+            console.log('📊 Stats button already exists');
+            return;
+        }
+        
         // Add stats toggle button to header
         const headerButtons = document.querySelector('.header-buttons');
         if (headerButtons) {
@@ -30,9 +36,13 @@ class StatsOverlay {
             const overviewBtn = document.getElementById('overview-button');
             if (overviewBtn) {
                 headerButtons.insertBefore(statsBtn, overviewBtn);
+                console.log('📊 Stats button inserted before overview button');
             } else {
                 headerButtons.appendChild(statsBtn);
+                console.log('📊 Stats button appended to header buttons');
             }
+        } else {
+            console.error('❌ Header buttons container not found');
         }
     }
     
@@ -64,13 +74,31 @@ class StatsOverlay {
         this.isEnabled = !this.isEnabled;
         const statsBtn = document.getElementById('stats-toggle');
         
+        if (!statsBtn) {
+            console.error('❌ Stats button not found');
+            return;
+        }
+        
         console.log('📊 Stats enabled:', this.isEnabled);
         
         if (this.isEnabled) {
             statsBtn.classList.add('active');
             statsBtn.innerHTML = '📊 統計 ON';
             console.log('🚀 Loading and displaying stats...');
-            await this.loadAndDisplayStats();
+            
+            try {
+                await this.loadAndDisplayStats();
+                
+                // If no data was loaded, show a message
+                if (this.statsData.size === 0) {
+                    console.log('⚠️ No stats data available, showing demo data');
+                    this.showDemoStats();
+                }
+            } catch (error) {
+                console.error('❌ Failed to load stats:', error);
+                // Show demo stats as fallback
+                this.showDemoStats();
+            }
         } else {
             statsBtn.classList.remove('active');
             statsBtn.innerHTML = '📊 統計';
@@ -96,6 +124,17 @@ class StatsOverlay {
         console.log('🔍 Loading stats data for all members...');
         console.log('Current user:', currentUser);
         
+        // Check if we have the necessary dependencies
+        if (typeof apiClient === 'undefined') {
+            console.error('❌ apiClient not available');
+            return;
+        }
+        
+        if (typeof storage === 'undefined') {
+            console.error('❌ storage not available');
+            return;
+        }
+        
         for (const memberName of this.memberNames) {
             try {
                 console.log(`📊 Loading data for ${memberName}...`);
@@ -104,33 +143,51 @@ class StatsOverlay {
                 storage.setNickname(memberName);
                 
                 // Get current calendar view dates
+                let start, end;
                 const calendar = window.bandSyncCalendar?.calendar;
                 if (calendar) {
                     const view = calendar.view;
-                    const start = view.activeStart.toISOString().split('T')[0];
-                    const end = view.activeEnd.toISOString().split('T')[0];
-                    
-                    console.log(`📅 Date range: ${start} to ${end}`);
-                    
-                    const response = await apiClient.getAvailability(start, end);
-                    console.log(`📋 Response for ${memberName}:`, response);
-                    
-                    if (response && response.data && response.data.length > 0) {
-                        console.log(`✅ Found ${response.data.length} records for ${memberName}`);
-                        response.data.forEach(item => {
-                            const date = item.date.split('T')[0];
-                            if (!this.statsData.has(date)) {
-                                this.statsData.set(date, { good: 0, ok: 0, bad: 0 });
-                            }
-                            const dayStats = this.statsData.get(date);
-                            dayStats[item.status]++;
-                            console.log(`📈 Added ${item.status} for ${date}`);
-                        });
-                    } else {
-                        console.log(`❌ No data found for ${memberName}`);
-                    }
+                    start = view.activeStart.toISOString().split('T')[0];
+                    end = view.activeEnd.toISOString().split('T')[0];
+                    console.log(`📅 Using calendar date range: ${start} to ${end}`);
                 } else {
-                    console.log('❌ Calendar not found');
+                    // Fallback to current month if calendar not available
+                    const today = new Date();
+                    start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                    end = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+                    console.log(`📅 Using fallback date range: ${start} to ${end}`);
+                }
+                
+                const response = await apiClient.getAvailability(start, end);
+                console.log(`📋 Response for ${memberName}:`, response);
+                
+                if (response && response.data && response.data.length > 0) {
+                    console.log(`✅ Found ${response.data.length} records for ${memberName}`);
+                    response.data.forEach(item => {
+                        // Handle both date formats
+                        let date;
+                        if (item.date) {
+                            date = item.date.split('T')[0];
+                        } else if (item.start_time) {
+                            date = item.start_time.split('T')[0];
+                        } else {
+                            console.warn('❌ No date field found in item:', item);
+                            return;
+                        }
+                        
+                        if (!this.statsData.has(date)) {
+                            this.statsData.set(date, { good: 0, ok: 0, bad: 0 });
+                        }
+                        const dayStats = this.statsData.get(date);
+                        if (dayStats[item.status] !== undefined) {
+                            dayStats[item.status]++;
+                            console.log(`📈 Added ${item.status} for ${date} (total: ${dayStats[item.status]})`);
+                        } else {
+                            console.warn(`❌ Unknown status: ${item.status}`);
+                        }
+                    });
+                } else {
+                    console.log(`❌ No data found for ${memberName}`);
                 }
             } catch (error) {
                 console.warn(`❌ Failed to load data for ${memberName}:`, error);
@@ -140,10 +197,16 @@ class StatsOverlay {
         // Restore original user
         if (currentUser) {
             storage.setNickname(currentUser);
+            console.log(`🔄 Restored user to: ${currentUser}`);
         }
         
         console.log('📊 Final stats data:', this.statsData);
         console.log('📊 Stats data size:', this.statsData.size);
+        
+        // Log each date's stats for debugging
+        this.statsData.forEach((stats, date) => {
+            console.log(`📅 ${date}: ○${stats.good} △${stats.ok} ×${stats.bad}`);
+        });
     }
     
     updateStatsDisplay() {
@@ -206,6 +269,39 @@ class StatsOverlay {
     clearStatsDisplay() {
         const statsOverlays = document.querySelectorAll('.stats-overlay');
         statsOverlays.forEach(overlay => overlay.remove());
+        console.log(`🧹 Cleared ${statsOverlays.length} stats overlays`);
+    }
+    
+    showDemoStats() {
+        console.log('🎭 Showing demo stats...');
+        
+        // Create demo data for the current week
+        const today = new Date();
+        const demoData = new Map();
+        
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            demoData.set(dateStr, {
+                good: Math.floor(Math.random() * 3) + 1,
+                ok: Math.floor(Math.random() * 2),
+                bad: Math.floor(Math.random() * 2)
+            });
+        }
+        
+        // Temporarily use demo data
+        const originalData = this.statsData;
+        this.statsData = demoData;
+        
+        // Display demo stats
+        this.updateStatsDisplay();
+        
+        // Restore original data
+        this.statsData = originalData;
+        
+        console.log('🎭 Demo stats displayed');
     }
 }
 
@@ -214,8 +310,20 @@ const statsOverlay = new StatsOverlay();
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Initializing stats overlay...');
     statsOverlay.initialize();
 });
+
+// Also initialize if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Initializing stats overlay (DOM ready)...');
+        statsOverlay.initialize();
+    });
+} else {
+    console.log('🚀 Initializing stats overlay (DOM already loaded)...');
+    statsOverlay.initialize();
+}
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {

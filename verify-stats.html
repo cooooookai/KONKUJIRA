@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Stats - Band Sync Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    
+    <style>
+        .verification-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 400px;
+            z-index: 1000;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .verify-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%;
+            font-size: 13px;
+        }
+        .verify-button:hover {
+            background: #218838;
+        }
+        .result {
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .result.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .result.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .result.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .result.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .data-display {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <h1>バンド同期カレンダー - Stats Verification</h1>
+                <div class="header-buttons">
+                    <!-- Stats button will be added here -->
+                </div>
+            </div>
+            <div id="nickname-display">Current User: <span id="current-user">Loading...</span></div>
+        </header>
+        
+        <main>
+            <div id="calendar"></div>
+        </main>
+    </div>
+    
+    <!-- Verification Panel -->
+    <div class="verification-panel">
+        <h4>🔍 Stats Verification</h4>
+        
+        <button id="verify-user" class="verify-button">1. Check Current User</button>
+        <button id="verify-api" class="verify-button">2. Test API Connection</button>
+        <button id="verify-data" class="verify-button">3. Check Saved Data</button>
+        <button id="verify-stats" class="verify-button">4. Test Stats Overlay</button>
+        <button id="verify-all-users" class="verify-button">5. Check All Users Data</button>
+        
+        <div id="results"></div>
+        <div id="data-display" class="data-display" style="display: none;"></div>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <!-- Application JS -->
+    <script src="src/frontend/js/config.js"></script>
+    <script src="src/frontend/js/storage.js"></script>
+    <script src="src/frontend/js/api.js"></script>
+    <script src="src/frontend/js/stats-overlay.js"></script>
+    
+    <script>
+        // Results logging
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+            results.appendChild(resultDiv);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function showData(data) {
+            const dataDisplay = document.getElementById('data-display');
+            dataDisplay.style.display = 'block';
+            dataDisplay.textContent = JSON.stringify(data, null, 2);
+        }
+        
+        function hideData() {
+            const dataDisplay = document.getElementById('data-display');
+            dataDisplay.style.display = 'none';
+        }
+        
+        // Initialize
+        let calendar;
+        
+        async function initialize() {
+            try {
+                // Initialize storage
+                await storage.initialize();
+                
+                // Set up calendar
+                const calendarEl = document.getElementById('calendar');
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'ja',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth'
+                    }
+                });
+                calendar.render();
+                
+                // Make calendar available globally
+                window.bandSyncCalendar = { calendar: calendar };
+                
+                // Initialize stats overlay
+                if (typeof statsOverlay !== 'undefined') {
+                    statsOverlay.initialize();
+                }
+                
+                // Update current user display
+                updateCurrentUser();
+                
+                addResult('Initialization complete', 'success');
+            } catch (error) {
+                addResult(`Initialization failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateCurrentUser() {
+            const currentUser = storage.getNickname();
+            document.getElementById('current-user').textContent = currentUser || 'None';
+        }
+        
+        // Verification functions
+        document.getElementById('verify-user').addEventListener('click', function() {
+            hideData();
+            const currentUser = storage.getNickname();
+            
+            if (currentUser) {
+                addResult(`Current user: ${currentUser}`, 'success');
+                
+                // Check if it's one of the valid users
+                const validUsers = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI', 'テスト', 'USER'];
+                if (validUsers.includes(currentUser)) {
+                    addResult('User is valid', 'success');
+                } else {
+                    addResult('User is not in the valid list', 'warning');
+                }
+            } else {
+                addResult('No user set', 'error');
+            }
+        });
+        
+        document.getElementById('verify-api').addEventListener('click', async function() {
+            hideData();
+            addResult('Testing API connection...', 'info');
+            
+            try {
+                const today = new Date();
+                const start = today.toISOString().split('T')[0];
+                const end = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                const response = await apiClient.getAvailability(start, end);
+                addResult('API connection successful', 'success');
+                
+                if (response && response.data) {
+                    addResult(`API returned ${response.data.length} records`, 'info');
+                    if (response.data.length > 0) {
+                        showData(response.data);
+                    }
+                } else {
+                    addResult('API response format unexpected', 'warning');
+                    showData(response);
+                }
+            } catch (error) {
+                addResult(`API connection failed: ${error.message}`, 'error');
+            }
+        });
+        
+        document.getElementById('verify-data').addEventListener('click', async function() {
+            hideData();
+            const currentUser = storage.getNickname();
+            
+            if (!currentUser) {
+                addResult('Please set a user first', 'error');
+                return;
+            }
+            
+            addResult(`Checking saved data for ${currentUser}...`, 'info');
+            
+            try {
+                const today = new Date();
+                const start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                const end = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+                
+                const response = await apiClient.getAvailability(start, end);
+                
+                if (response && response.data && response.data.length > 0) {
+                    addResult(`Found ${response.data.length} records for ${currentUser}`, 'success');
+                    
+                    // Group by date
+                    const byDate = {};
+                    response.data.forEach(item => {
+                        const date = item.date ? item.date.split('T')[0] : item.start_time.split('T')[0];
+                        if (!byDate[date]) byDate[date] = [];
+                        byDate[date].push(item);
+                    });
+                    
+                    addResult(`Data spans ${Object.keys(byDate).length} dates`, 'info');
+                    showData(byDate);
+                } else {
+                    addResult(`No data found for ${currentUser}`, 'warning');
+                }
+            } catch (error) {
+                addResult(`Failed to check data: ${error.message}`, 'error');
+            }
+        });
+        
+        document.getElementById('verify-stats').addEventListener('click', function() {
+            hideData();
+            addResult('Testing stats overlay...', 'info');
+            
+            // Check if stats overlay exists
+            if (typeof statsOverlay === 'undefined') {
+                addResult('Stats overlay not loaded', 'error');
+                return;
+            }
+            
+            // Check if stats button exists
+            const statsBtn = document.getElementById('stats-toggle');
+            if (!statsBtn) {
+                addResult('Stats button not found', 'error');
+                return;
+            }
+            
+            addResult('Stats overlay and button found', 'success');
+            
+            // Try to toggle stats
+            try {
+                statsOverlay.toggle();
+                addResult('Stats toggle successful', 'success');
+                
+                // Check if any stats overlays were created
+                setTimeout(() => {
+                    const overlays = document.querySelectorAll('.stats-overlay');
+                    if (overlays.length > 0) {
+                        addResult(`${overlays.length} stats overlays created`, 'success');
+                    } else {
+                        addResult('No stats overlays visible (may be no data)', 'warning');
+                    }
+                }, 1000);
+            } catch (error) {
+                addResult(`Stats toggle failed: ${error.message}`, 'error');
+            }
+        });
+        
+        document.getElementById('verify-all-users').addEventListener('click', async function() {
+            hideData();
+            addResult('Checking data for all users...', 'info');
+            
+            const users = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI', 'テスト', 'USER'];
+            const originalUser = storage.getNickname();
+            const allData = {};
+            
+            for (const user of users) {
+                try {
+                    storage.setNickname(user);
+                    
+                    const today = new Date();
+                    const start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+                    
+                    const response = await apiClient.getAvailability(start, end);
+                    
+                    if (response && response.data && response.data.length > 0) {
+                        allData[user] = response.data.length;
+                        addResult(`${user}: ${response.data.length} records`, 'success');
+                    } else {
+                        allData[user] = 0;
+                        addResult(`${user}: No data`, 'warning');
+                    }
+                } catch (error) {
+                    allData[user] = `Error: ${error.message}`;
+                    addResult(`${user}: Error - ${error.message}`, 'error');
+                }
+            }
+            
+            // Restore original user
+            if (originalUser) {
+                storage.setNickname(originalUser);
+            }
+            
+            showData(allData);
+            
+            const totalRecords = Object.values(allData).reduce((sum, count) => {
+                return sum + (typeof count === 'number' ? count : 0);
+            }, 0);
+            
+            addResult(`Total records across all users: ${totalRecords}`, 'info');
+        });
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>

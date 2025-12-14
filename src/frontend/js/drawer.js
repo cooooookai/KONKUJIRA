@@ -624,17 +624,59 @@ class DrawerManager {
         const endTime = endTimeInput.value;
         const nickname = storage.getNickname();
         
-        if (title && type && startTime && endTime) {
+        // Show preview if at least title or type is filled
+        if (title || type || startTime || endTime) {
             const typeLabels = {
                 'live': '🎤 LIVE・コンサート',
                 'rehearsal': '🎵 リハーサル・練習',
                 'other': '📅 その他のイベント'
             };
             
-            preview.querySelector('.preview-title').textContent = title;
-            preview.querySelector('.preview-type').textContent = typeLabels[type] || type;
-            preview.querySelector('.preview-time').textContent = `${startTime} - ${endTime}`;
-            preview.querySelector('.preview-creator').textContent = `作成者: ${nickname}`;
+            // Update title
+            const titleEl = preview.querySelector('.preview-title');
+            if (title) {
+                titleEl.textContent = title;
+                titleEl.classList.remove('preview-placeholder');
+            } else {
+                titleEl.textContent = 'イベントタイトル未入力';
+                titleEl.classList.add('preview-placeholder');
+            }
+            
+            // Update type
+            const typeEl = preview.querySelector('.preview-type');
+            if (type) {
+                typeEl.textContent = typeLabels[type] || type;
+                typeEl.classList.remove('preview-placeholder');
+            } else {
+                typeEl.textContent = '種類未選択';
+                typeEl.classList.add('preview-placeholder');
+            }
+            
+            // Update time
+            const timeEl = preview.querySelector('.preview-time');
+            let timeText = '';
+            let hasCompleteTime = false;
+            
+            if (startTime && endTime) {
+                timeText = `${startTime} - ${endTime}`;
+                hasCompleteTime = true;
+            } else if (startTime) {
+                timeText = `${startTime} - 終了時刻未入力`;
+            } else if (endTime) {
+                timeText = `開始時刻未入力 - ${endTime}`;
+            } else {
+                timeText = '時刻未入力';
+            }
+            
+            timeEl.textContent = timeText;
+            if (hasCompleteTime) {
+                timeEl.classList.remove('preview-placeholder');
+            } else {
+                timeEl.classList.add('preview-placeholder');
+            }
+            
+            // Update creator
+            preview.querySelector('.preview-creator').textContent = `作成者: ${nickname || '未設定'}`;
             
             preview.style.display = 'block';
         } else {

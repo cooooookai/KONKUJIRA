@@ -6,7 +6,7 @@
  */
 
 // Configuration
-const API_BASE_URL = 'https://your-worker-name.your-subdomain.workers.dev';
+const API_BASE_URL = 'https://band-sync-calendar-production.cooooookai.workers.dev';
 
 /**
  * Test helper function

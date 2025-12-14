@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats Debug - Band Sync Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    
+    <style>
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 400px;
+            z-index: 1000;
+            font-size: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .debug-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        .test-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 11px;
+        }
+        .test-button.danger {
+            background: #dc3545;
+        }
+        .test-button.warning {
+            background: #ffc107;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <h1>バンド同期カレンダー - Stats Debug</h1>
+                <div class="header-buttons">
+                    <button id="stats-toggle" class="stats-button">📊 統計</button>
+                </div>
+            </div>
+            <div id="nickname-display">Current User: <span id="current-user">None</span></div>
+        </header>
+        
+        <main>
+            <div id="calendar"></div>
+        </main>
+    </div>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel">
+        <h4>🔍 Stats Debug Panel</h4>
+        
+        <div>
+            <h5>User Management:</h5>
+            <select id="user-select">
+                <option value="">Select User...</option>
+                <option value="COKAI">COKAI</option>
+                <option value="YUSUKE">YUSUKE</option>
+                <option value="ZEN">ZEN</option>
+                <option value="YAMCHI">YAMCHI</option>
+                <option value="テスト">テスト</option>
+                <option value="USER">USER</option>
+            </select>
+            <button id="set-user-btn" class="test-button">Set User</button>
+        </div>
+        
+        <div>
+            <h5>Data Testing:</h5>
+            <button id="add-test-data-btn" class="test-button">Add Test Data</button>
+            <button id="check-api-btn" class="test-button">Check API</button>
+            <button id="check-storage-btn" class="test-button">Check Storage</button>
+            <button id="force-stats-btn" class="test-button warning">Force Stats</button>
+            <button id="clear-cache-btn" class="test-button danger">Clear Cache</button>
+        </div>
+        
+        <div>
+            <h5>Calendar Testing:</h5>
+            <button id="check-calendar-btn" class="test-button">Check Calendar</button>
+            <button id="check-dom-btn" class="test-button">Check DOM</button>
+            <button id="simulate-save-btn" class="test-button">Simulate Save</button>
+        </div>
+        
+        <div id="debug-log" class="debug-log">Ready for debugging...</div>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <!-- Application JS -->
+    <script src="src/frontend/js/config.js"></script>
+    <script src="src/frontend/js/storage.js"></script>
+    <script src="src/frontend/js/api.js"></script>
+    
+    <script>
+        // Debug logging
+        const debugLog = document.getElementById('debug-log');
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            const logMessage = `[${timestamp}] ${prefix} ${message}`;
+            console.log(logMessage);
+            debugLog.innerHTML += logMessage + '<br>';
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+        
+        // Initialize storage
+        storage.initialize().then(() => {
+            log('Storage initialized', 'success');
+            updateCurrentUser();
+        });
+        
+        // Calendar setup
+        let calendar;
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                dateClick: function(info) {
+                    log(`Calendar date clicked: ${info.dateStr}`);
+                }
+            });
+            calendar.render();
+            log('Calendar rendered', 'success');
+            
+            // Trigger calendar rendered event
+            document.dispatchEvent(new CustomEvent('calendar-rendered'));
+        });
+        
+        // Update current user display
+        function updateCurrentUser() {
+            const currentUser = storage.getNickname();
+            document.getElementById('current-user').textContent = currentUser || 'None';
+            log(`Current user: ${currentUser || 'None'}`);
+        }
+        
+        // User selection
+        document.getElementById('set-user-btn').addEventListener('click', function() {
+            const selectedUser = document.getElementById('user-select').value;
+            if (selectedUser) {
+                storage.setNickname(selectedUser);
+                updateCurrentUser();
+                log(`User set to: ${selectedUser}`, 'success');
+            } else {
+                log('Please select a user', 'warning');
+            }
+        });
+        
+        // Add test data
+        document.getElementById('add-test-data-btn').addEventListener('click', async function() {
+            const currentUser = storage.getNickname();
+            if (!currentUser) {
+                log('Please set a user first', 'warning');
+                return;
+            }
+            
+            log(`Adding test data for ${currentUser}...`);
+            
+            // Create test availability data
+            const today = new Date();
+            const testData = [];
+            
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const startTime = new Date(date);
+                startTime.setHours(10, 0, 0, 0);
+                
+                const endTime = new Date(date);
+                endTime.setHours(18, 0, 0, 0);
+                
+                const statuses = ['good', 'ok', 'bad'];
+                const status = statuses[i % 3];
+                
+                testData.push({
+                    member_name: currentUser,
+                    start_time: startTime.toISOString(),
+                    end_time: endTime.toISOString(),
+                    status: status,
+                    date: date.toISOString().split('T')[0]
+                });
+            }
+            
+            try {
+                for (const data of testData) {
+                    await apiClient.saveAvailability(data);
+                    log(`✅ Saved ${data.status} for ${data.date}`);
+                }
+                log('All test data saved successfully', 'success');
+                
+                // Trigger availability saved event
+                document.dispatchEvent(new CustomEvent('availability-saved'));
+            } catch (error) {
+                log(`Failed to save test data: ${error.message}`, 'error');
+            }
+        });
+        
+        // Check API
+        document.getElementById('check-api-btn').addEventListener('click', async function() {
+            const currentUser = storage.getNickname();
+            if (!currentUser) {
+                log('Please set a user first', 'warning');
+                return;
+            }
+            
+            log('Checking API connection...');
+            
+            try {
+                const today = new Date();
+                const start = today.toISOString().split('T')[0];
+                const end = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                log(`Fetching availability from ${start} to ${end} for ${currentUser}`);
+                
+                const response = await apiClient.getAvailability(start, end);
+                log(`API Response: ${JSON.stringify(response)}`, 'success');
+                
+                if (response && response.data) {
+                    log(`Found ${response.data.length} availability records`);
+                    response.data.forEach((item, index) => {
+                        log(`  ${index + 1}. ${item.date}: ${item.status} (${item.member_name})`);
+                    });
+                } else {
+                    log('No data in API response', 'warning');
+                }
+            } catch (error) {
+                log(`API Error: ${error.message}`, 'error');
+            }
+        });
+        
+        // Check storage
+        document.getElementById('check-storage-btn').addEventListener('click', function() {
+            log('Checking storage...');
+            
+            const nickname = storage.getNickname();
+            log(`Stored nickname: ${nickname}`);
+            
+            const cache = storage.getAllCache();
+            log(`Cache entries: ${Object.keys(cache).length}`);
+            
+            Object.keys(cache).forEach(key => {
+                const item = cache[key];
+                const isExpired = item.expires && Date.now() > item.expires;
+                log(`  ${key}: ${isExpired ? 'EXPIRED' : 'valid'} (${new Date(item.created).toLocaleString()})`);
+            });
+            
+            const storageInfo = storage.getStorageInfo();
+            if (storageInfo) {
+                log(`Storage usage: ${storageInfo.percentage}% (${storageInfo.itemCount} items)`);
+            }
+        });
+        
+        // Force stats display
+        document.getElementById('force-stats-btn').addEventListener('click', function() {
+            log('Forcing stats display...');
+            
+            if (window.statsOverlay) {
+                log('Stats overlay found, toggling...');
+                window.statsOverlay.toggle();
+            } else {
+                log('Stats overlay not found, creating mock stats...', 'warning');
+                showMockStats();
+            }
+        });
+        
+        // Show mock stats
+        function showMockStats() {
+            const dayCells = document.querySelectorAll('.fc-daygrid-day');
+            log(`Found ${dayCells.length} calendar day cells`);
+            
+            let updated = 0;
+            dayCells.forEach((cell, index) => {
+                if (index < 5) { // Only update first 5 days
+                    const stats = {
+                        good: Math.floor(Math.random() * 3) + 1,
+                        ok: Math.floor(Math.random() * 2),
+                        bad: Math.floor(Math.random() * 2)
+                    };
+                    
+                    addMockStatsToCell(cell, stats);
+                    updated++;
+                    
+                    const dateAttr = cell.getAttribute('data-date');
+                    log(`Added mock stats to ${dateAttr}: ○${stats.good} △${stats.ok} ×${stats.bad}`);
+                }
+            });
+            
+            log(`Updated ${updated} cells with mock stats`, 'success');
+        }
+        
+        function addMockStatsToCell(cell, stats) {
+            // Remove existing stats
+            const existing = cell.querySelector('.stats-overlay');
+            if (existing) existing.remove();
+            
+            // Create stats overlay
+            const statsEl = document.createElement('div');
+            statsEl.className = 'stats-overlay';
+            
+            let html = '';
+            if (stats.good > 0) html += `<span class="stat-item good">○${stats.good}</span>`;
+            if (stats.ok > 0) html += `<span class="stat-item ok">△${stats.ok}</span>`;
+            if (stats.bad > 0) html += `<span class="stat-item bad">×${stats.bad}</span>`;
+            
+            if (html) {
+                statsEl.innerHTML = html;
+                const dayFrame = cell.querySelector('.fc-daygrid-day-frame') || cell;
+                dayFrame.appendChild(statsEl);
+            }
+        }
+        
+        // Clear cache
+        document.getElementById('clear-cache-btn').addEventListener('click', function() {
+            log('Clearing cache...');
+            storage.clearCache();
+            log('Cache cleared', 'success');
+        });
+        
+        // Check calendar
+        document.getElementById('check-calendar-btn').addEventListener('click', function() {
+            log('Checking calendar state...');
+            
+            if (calendar) {
+                const view = calendar.view;
+                log(`Calendar view: ${view.type}`);
+                log(`Date range: ${view.activeStart.toISOString().split('T')[0]} to ${view.activeEnd.toISOString().split('T')[0]}`);
+                
+                const events = calendar.getEvents();
+                log(`Calendar events: ${events.length}`);
+            } else {
+                log('Calendar not initialized', 'error');
+            }
+        });
+        
+        // Check DOM
+        document.getElementById('check-dom-btn').addEventListener('click', function() {
+            log('Checking DOM elements...');
+            
+            const statsButton = document.getElementById('stats-toggle');
+            log(`Stats button exists: ${!!statsButton}`);
+            if (statsButton) {
+                log(`Stats button classes: ${statsButton.className}`);
+                log(`Stats button text: ${statsButton.innerHTML}`);
+            }
+            
+            const dayCells = document.querySelectorAll('.fc-daygrid-day');
+            log(`Calendar day cells: ${dayCells.length}`);
+            
+            const statsOverlays = document.querySelectorAll('.stats-overlay');
+            log(`Existing stats overlays: ${statsOverlays.length}`);
+            
+            if (dayCells.length > 0) {
+                const firstCell = dayCells[0];
+                const dateAttr = firstCell.getAttribute('data-date');
+                const dayFrame = firstCell.querySelector('.fc-daygrid-day-frame');
+                log(`First cell date: ${dateAttr}`);
+                log(`First cell has day-frame: ${!!dayFrame}`);
+            }
+        });
+        
+        // Simulate save
+        document.getElementById('simulate-save-btn').addEventListener('click', function() {
+            log('Simulating availability save event...');
+            document.dispatchEvent(new CustomEvent('availability-saved'));
+            log('Event dispatched', 'success');
+        });
+        
+        // Stats toggle functionality
+        let statsEnabled = false;
+        document.getElementById('stats-toggle').addEventListener('click', function() {
+            statsEnabled = !statsEnabled;
+            const btn = this;
+            
+            if (statsEnabled) {
+                btn.classList.add('active');
+                btn.innerHTML = '📊 統計 ON';
+                log('Stats enabled via button', 'success');
+                showMockStats();
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '📊 統計';
+                log('Stats disabled via button');
+                clearMockStats();
+            }
+        });
+        
+        function clearMockStats() {
+            document.querySelectorAll('.stats-overlay').forEach(el => el.remove());
+            log('Cleared all stats overlays');
+        }
+        
+        log('Debug page loaded and ready', 'success');
+    </script>
+</body>
+</html>

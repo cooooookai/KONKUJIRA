@@ -877,6 +877,13 @@ main {
     color: #2c3e50;
 }
 
+.preview-title:empty::after,
+.preview-title[data-placeholder]::after {
+    content: attr(data-placeholder);
+    color: #bdc3c7;
+    font-style: italic;
+}
+
 .preview-type {
     color: #7f8c8d;
     font-size: 0.9rem;
@@ -891,6 +898,12 @@ main {
 .preview-creator {
     color: #95a5a6;
     font-size: 0.85rem;
+}
+
+/* Placeholder styles for incomplete preview */
+.preview-placeholder {
+    color: #bdc3c7 !important;
+    font-style: italic;
 }
 
 /* Status Selection */
