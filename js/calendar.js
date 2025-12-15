@@ -25,14 +25,14 @@ class CalendarManager {
             
             // FullCalendar configuration
             const calendarConfig = {
-                // View Configuration
-                initialView: isMobile ? CONFIG.CALENDAR_VIEWS.MOBILE : CONFIG.CALENDAR_VIEWS.DESKTOP,
+                // View Configuration - Only dayGrid
+                initialView: 'dayGridMonth',
                 
-                // Header Toolbar
+                // Header Toolbar - Simplified
                 headerToolbar: {
-                    left: 'prev,next today',
+                    left: 'prev,next',
                     center: 'title',
-                    right: isMobile ? 'listMonth,dayGridMonth' : 'dayGridMonth,listMonth'
+                    right: 'today'
                 },
                 
                 // Localization
@@ -186,17 +186,17 @@ class CalendarManager {
     }
     
     /**
-     * Create member status grid for a day cell
+     * Create member status grid for a day cell - Always visible
      */
     createMemberStatusGrid(dayCell, dateStr) {
         const grid = document.createElement('div');
         grid.className = 'member-status-grid';
         
         const members = [
-            { name: 'COKAI', class: 'member-cokai', icon: '🎸' },
-            { name: 'YUSUKE', class: 'member-yusuke', icon: '🥁' },
-            { name: 'ZEN', class: 'member-zen', icon: '🎹' },
-            { name: 'YAMCHI', class: 'member-yamchi', icon: '🎤' }
+            { name: 'COKAI', class: 'member-cokai' },
+            { name: 'YUSUKE', class: 'member-yusuke' },
+            { name: 'ZEN', class: 'member-zen' },
+            { name: 'YAMCHI', class: 'member-yamchi' }
         ];
         
         members.forEach(member => {
@@ -204,13 +204,7 @@ class CalendarManager {
             cell.className = `member-status-cell ${member.class} status-none`;
             cell.setAttribute('data-member', member.name);
             cell.setAttribute('data-date', dateStr);
-            cell.title = `${member.name} - クリックして詳細表示`;
-            
-            // Add click handler
-            cell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.showMemberDetails(member.name, dateStr);
-            });
+            cell.title = `${member.name}`;
             
             grid.appendChild(cell);
         });
