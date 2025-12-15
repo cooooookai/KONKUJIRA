@@ -9,7 +9,31 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
     color: #333;
-    background-color: #f5f5f5;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Dopamine Color Palette */
+:root {
+    --cokai-blue: #4A90E2;
+    --cokai-blue-light: #7BB3F0;
+    --cokai-blue-bg: rgba(74, 144, 226, 0.1);
+    
+    --yusuke-green: #7ED321;
+    --yusuke-green-light: #9AE34A;
+    --yusuke-green-bg: rgba(126, 211, 33, 0.1);
+    
+    --zen-yellow: #F5A623;
+    --zen-yellow-light: #F7C948;
+    --zen-yellow-bg: rgba(245, 166, 35, 0.1);
+    
+    --yamchi-pink: #FF6B9D;
+    --yamchi-pink-light: #FF8FB3;
+    --yamchi-pink-bg: rgba(255, 107, 157, 0.1);
+    
+    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --border-radius: 16px;
 }
 
 /* Header */
@@ -701,10 +725,223 @@ main {
 
 /* Calendar Styles */
 #calendar {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Custom Calendar Day Layout */
+.fc-daygrid-day {
+    position: relative;
+    min-height: 120px !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 12px !important;
+    margin: 2px !important;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.fc-daygrid-day:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: rgba(102, 126, 234, 0.5) !important;
+}
+
+.fc-daygrid-day-number {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #2c3e50;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Event Display Area */
+.fc-daygrid-day-events {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    left: 35px;
+    height: 35px;
+    overflow: hidden;
+}
+
+.fc-daygrid-event {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    border-radius: 8px !important;
+    margin-bottom: 2px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Member Status Grid */
+.member-status-grid {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    height: 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 4px;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 1rem;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.member-status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.member-status-cell:hover {
+    transform: scale(1.1);
+    z-index: 5;
+}
+
+/* Member Colors */
+.member-cokai {
+    background: linear-gradient(135deg, var(--cokai-blue), var(--cokai-blue-light));
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.member-yusuke {
+    background: linear-gradient(135deg, var(--yusuke-green), var(--yusuke-green-light));
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.member-zen {
+    background: linear-gradient(135deg, var(--zen-yellow), var(--zen-yellow-light));
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.member-yamchi {
+    background: linear-gradient(135deg, var(--yamchi-pink), var(--yamchi-pink-light));
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Status Symbols */
+.status-available::before {
+    content: '○';
+}
+
+.status-flexible::before {
+    content: '△';
+}
+
+.status-busy::before {
+    content: '×';
+}
+
+.status-none {
+    background: rgba(200, 200, 200, 0.3) !important;
+    color: #999 !important;
+}
+
+.status-none::before {
+    content: '?';
+    opacity: 0.5;
+}
+
+/* Member Labels */
+.member-status-cell::after {
+    content: attr(data-member);
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 8px;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+/* Today Highlight */
+.fc-day-today {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 193, 7, 0.1)) !important;
+    border-color: #FFD700 !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+    background: linear-gradient(135deg, #FFD700, #FFC107);
+    color: white;
+}
+
+/* Weekend Styling */
+.fc-day-sat, .fc-day-sun {
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.05), rgba(255, 143, 179, 0.05)) !important;
+}
+
+/* Header Styling */
+.fc-col-header-cell {
+    background: var(--bg-gradient) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border: none !important;
+    padding: 12px 8px !important;
+}
+
+.fc-col-header-cell:first-child {
+    border-top-left-radius: 12px !important;
+}
+
+.fc-col-header-cell:last-child {
+    border-top-right-radius: 12px !important;
+}
+
+/* Toolbar Styling */
+.fc-toolbar {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.fc-button-primary {
+    background: var(--bg-gradient) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 8px 16px !important;
+    transition: all 0.2s ease !important;
+}
+
+.fc-button-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+}
+
+.fc-toolbar-title {
+    color: #2c3e50 !important;
+    font-weight: 700 !important;
+    font-size: 1.5rem !important;
 }
 
 /* Mobile-first Calendar Adjustments */
@@ -2183,6 +2420,241 @@ endations {
 
 .add-availability-btn:active {
     transform: translateY(0);
+}
+
+/* Member Info Modal */
+.member-info-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.member-info-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.member-info-modal.closing {
+    opacity: 0;
+}
+
+.member-info-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.member-info-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.member-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    color: white;
+}
+
+.member-info-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.member-info-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.member-info-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.member-info-body {
+    padding: 1.5rem;
+}
+
+.date-info {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    text-align: center;
+    padding: 0.75rem;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+}
+
+.status-info {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.status-display {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.status-icon {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.status-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.time-info {
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 0.75rem;
+}
+
+.description-info {
+    background: rgba(102, 126, 234, 0.1);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+    font-style: italic;
+    color: #2c3e50;
+}
+
+.no-data-info {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.member-actions {
+    margin-top: 1rem;
+}
+
+.edit-availability-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-availability-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Dopamine Header Styling */
+header {
+    background: var(--bg-gradient);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--card-shadow);
+}
+
+/* Main Content Styling */
+main {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Member Selection Modal Updates */
+.member-select option[data-color="blue"] {
+    background: var(--cokai-blue-bg);
+    color: var(--cokai-blue);
+}
+
+.member-select option[data-color="green"] {
+    background: var(--yusuke-green-bg);
+    color: var(--yusuke-green);
+}
+
+.member-select option[data-color="yellow"] {
+    background: var(--zen-yellow-bg);
+    color: var(--zen-yellow);
+}
+
+.member-select option[data-color="pink"] {
+    background: var(--yamchi-pink-bg);
+    color: var(--yamchi-pink);
+}
+
+/* Drawer Updates for Dopamine Colors */
+.drawer {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.drawer-header {
+    background: var(--bg-gradient);
+    color: white;
+    margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+    padding: 1.5rem;
+    border-radius: 20px 20px 0 0;
+}
+
+.tab-btn.active {
+    background: var(--bg-gradient);
+    color: white;
+}
+
+.submit-btn {
+    background: var(--bg-gradient);
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 /* iPhone Optimizations */

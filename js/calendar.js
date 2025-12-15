@@ -90,6 +90,8 @@ class CalendarManager {
             // Trigger calendar rendered event for stats overlay
             setTimeout(() => {
                 document.dispatchEvent(new CustomEvent('calendar-rendered'));
+                // Initialize member status grids after calendar renders
+                this.initializeMemberStatusGrids();
             }, 100);
             
             // Set up responsive handling
@@ -159,10 +161,273 @@ class CalendarManager {
     }
     
     /**
+     * Initialize member status grids for all calendar days
+     */
+    async initializeMemberStatusGrids() {
+        console.log('Initializing member status grids...');
+        
+        // Get all day cells
+        const dayCells = document.querySelectorAll('.fc-daygrid-day');
+        
+        dayCells.forEach(dayCell => {
+            // Skip if already has grid
+            if (dayCell.querySelector('.member-status-grid')) return;
+            
+            // Get date from cell
+            const dateStr = dayCell.getAttribute('data-date');
+            if (!dateStr) return;
+            
+            // Create member status grid
+            this.createMemberStatusGrid(dayCell, dateStr);
+        });
+        
+        // Load and display member data
+        await this.loadAllMemberData();
+    }
+    
+    /**
+     * Create member status grid for a day cell
+     */
+    createMemberStatusGrid(dayCell, dateStr) {
+        const grid = document.createElement('div');
+        grid.className = 'member-status-grid';
+        
+        const members = [
+            { name: 'COKAI', class: 'member-cokai', icon: '🎸' },
+            { name: 'YUSUKE', class: 'member-yusuke', icon: '🥁' },
+            { name: 'ZEN', class: 'member-zen', icon: '🎹' },
+            { name: 'YAMCHI', class: 'member-yamchi', icon: '🎤' }
+        ];
+        
+        members.forEach(member => {
+            const cell = document.createElement('div');
+            cell.className = `member-status-cell ${member.class} status-none`;
+            cell.setAttribute('data-member', member.name);
+            cell.setAttribute('data-date', dateStr);
+            cell.title = `${member.name} - クリックして詳細表示`;
+            
+            // Add click handler
+            cell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showMemberDetails(member.name, dateStr);
+            });
+            
+            grid.appendChild(cell);
+        });
+        
+        dayCell.appendChild(grid);
+    }
+    
+    /**
+     * Load all member data and update status grids
+     */
+    async loadAllMemberData() {
+        const members = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI'];
+        const originalNickname = storage.getNickname();
+        
+        try {
+            for (const memberName of members) {
+                // Temporarily set nickname to fetch member's data
+                storage.setNickname(memberName);
+                
+                try {
+                    const { start, end } = getSyncPeriod();
+                    const memberData = await apiClient.getAvailability(start, end);
+                    
+                    if (memberData && memberData.data) {
+                        this.updateMemberStatusInGrid(memberName, memberData.data);
+                    }
+                } catch (error) {
+                    console.warn(`Failed to load data for ${memberName}:`, error);
+                }
+            }
+        } finally {
+            // Restore original nickname
+            if (originalNickname) {
+                storage.setNickname(originalNickname);
+            }
+        }
+    }
+    
+    /**
+     * Update member status in grid based on availability data
+     */
+    updateMemberStatusInGrid(memberName, availabilityData) {
+        availabilityData.forEach(item => {
+            const itemDate = new Date(item.start_time).toISOString().split('T')[0];
+            const cell = document.querySelector(
+                `.member-status-cell[data-member="${memberName}"][data-date="${itemDate}"]`
+            );
+            
+            if (cell) {
+                // Remove existing status classes
+                cell.classList.remove('status-none', 'status-available', 'status-flexible', 'status-busy');
+                
+                // Add new status class
+                const statusClass = item.status === 'good' ? 'status-available' :
+                                  item.status === 'ok' ? 'status-flexible' : 'status-busy';
+                cell.classList.add(statusClass);
+                
+                // Store data for details view
+                cell.setAttribute('data-status', item.status);
+                cell.setAttribute('data-description', item.description || '');
+                cell.setAttribute('data-start-time', item.start_time);
+                cell.setAttribute('data-end-time', item.end_time);
+            }
+        });
+    }
+    
+    /**
+     * Show member details for a specific date
+     */
+    showMemberDetails(memberName, dateStr) {
+        const cell = document.querySelector(
+            `.member-status-cell[data-member="${memberName}"][data-date="${dateStr}"]`
+        );
+        
+        if (!cell) return;
+        
+        const status = cell.getAttribute('data-status');
+        const description = cell.getAttribute('data-description');
+        const startTime = cell.getAttribute('data-start-time');
+        const endTime = cell.getAttribute('data-end-time');
+        
+        if (!status) {
+            // No data - open drawer for input
+            if (storage.getNickname() === memberName) {
+                if (typeof window.openDrawer === 'function') {
+                    window.openDrawer(dateStr);
+                }
+            } else {
+                this.showMemberInfo(memberName, dateStr, null);
+            }
+            return;
+        }
+        
+        this.showMemberInfo(memberName, dateStr, {
+            status,
+            description,
+            startTime,
+            endTime
+        });
+    }
+    
+    /**
+     * Show member information modal
+     */
+    showMemberInfo(memberName, dateStr, data) {
+        const modal = document.createElement('div');
+        modal.className = 'member-info-modal';
+        
+        const date = new Date(dateStr);
+        const formattedDate = date.toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+        
+        const memberColors = {
+            'COKAI': { color: 'var(--cokai-blue)', icon: '🎸' },
+            'YUSUKE': { color: 'var(--yusuke-green)', icon: '🥁' },
+            'ZEN': { color: 'var(--zen-yellow)', icon: '🎹' },
+            'YAMCHI': { color: 'var(--yamchi-pink)', icon: '🎤' }
+        };
+        
+        const memberInfo = memberColors[memberName];
+        
+        let content = `
+            <div class="member-info-backdrop"></div>
+            <div class="member-info-content">
+                <div class="member-info-header" style="background: linear-gradient(135deg, ${memberInfo.color}, ${memberInfo.color}dd);">
+                    <h3>${memberInfo.icon} ${memberName}</h3>
+                    <button class="member-info-close">&times;</button>
+                </div>
+                <div class="member-info-body">
+                    <div class="date-info">${formattedDate}</div>
+        `;
+        
+        if (data) {
+            const statusText = data.status === 'good' ? '空いている' :
+                            data.status === 'ok' ? '調整可能' : '空いていない';
+            const statusIcon = data.status === 'good' ? '○' :
+                             data.status === 'ok' ? '△' : '×';
+            
+            const startTime = new Date(data.startTime).toLocaleTimeString('ja-JP', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const endTime = new Date(data.endTime).toLocaleTimeString('ja-JP', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            content += `
+                <div class="status-info">
+                    <div class="status-display">
+                        <span class="status-icon">${statusIcon}</span>
+                        <span class="status-text">${statusText}</span>
+                    </div>
+                    <div class="time-info">${startTime} - ${endTime}</div>
+                    ${data.description ? `<div class="description-info">${data.description}</div>` : ''}
+                </div>
+            `;
+        } else {
+            content += `
+                <div class="no-data-info">
+                    <p>この日の空き状況は登録されていません。</p>
+                </div>
+            `;
+        }
+        
+        if (storage.getNickname() === memberName) {
+            content += `
+                <div class="member-actions">
+                    <button class="edit-availability-btn" data-date="${dateStr}">
+                        ✏️ 空き状況を${data ? '編集' : '登録'}
+                    </button>
+                </div>
+            `;
+        }
+        
+        content += `
+                </div>
+            </div>
+        `;
+        
+        modal.innerHTML = content;
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        modal.querySelector('.member-info-close').addEventListener('click', () => {
+            modal.classList.add('closing');
+            setTimeout(() => modal.remove(), 300);
+        });
+        
+        modal.querySelector('.member-info-backdrop').addEventListener('click', () => {
+            modal.classList.add('closing');
+            setTimeout(() => modal.remove(), 300);
+        });
+        
+        const editBtn = modal.querySelector('.edit-availability-btn');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                modal.remove();
+                if (typeof window.openDrawer === 'function') {
+                    window.openDrawer(dateStr);
+                }
+            });
+        }
+        
+        // Show modal
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+    
+    /**
      * Get all members' availability for a specific date
      */
     async getAllMembersAvailabilityForDate(dateStr) {
-        const memberNames = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI', 'テスト', 'USER'];
+        const memberNames = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI'];
         const allData = [];
         const originalNickname = storage.getNickname();
         
@@ -519,6 +784,11 @@ class CalendarManager {
             this.calendar.removeAllEvents();
             this.calendar.addEventSource(calendarEvents);
             this.currentEvents = calendarEvents;
+            
+            // Reload member status grids after data update
+            setTimeout(() => {
+                this.initializeMemberStatusGrids();
+            }, 200);
             
             console.log(`Loaded ${calendarEvents.length} calendar items`);
         } catch (error) {
