@@ -157,27 +157,36 @@ class BandSyncCalendar {
     }
     
     setupSyncTriggers() {
-        // Sync when app regains focus
+        // Debounced sync function to prevent excessive syncing
+        let syncTimeout = null;
+        const debouncedSync = () => {
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(() => {
+                this.intelligentSync();
+            }, 1000);
+        };
+        
+        // Sync when app regains focus (debounced)
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && this.isInitialized) {
                 console.log('App regained focus - triggering sync');
-                this.intelligentSync();
+                debouncedSync();
             }
         });
         
-        // Sync when network comes back online
+        // Sync when network comes back online (debounced)
         window.addEventListener('online', () => {
             if (this.isInitialized) {
                 console.log('Network restored - triggering sync');
-                setTimeout(() => this.intelligentSync(), 1000); // Small delay to ensure connection is stable
+                debouncedSync();
             }
         });
         
-        // Sync after successful data operations
+        // Sync after successful data operations (debounced)
         document.addEventListener('data-changed', () => {
             if (this.isInitialized) {
                 console.log('Data changed - triggering sync');
-                this.intelligentSync();
+                debouncedSync();
             }
         });
         
@@ -188,6 +197,50 @@ class BandSyncCalendar {
                 apiClient.processQueue();
             }
         });
+        
+        // Prevent iOS pull-to-refresh interference
+        this.setupIOSOptimizations();
+    }
+    
+    /**
+     * Setup iOS-specific optimizations
+     */
+    setupIOSOptimizations() {
+        // Detect iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        
+        if (isIOS) {
+            // Prevent pull-to-refresh on iOS
+            let startY = 0;
+            
+            document.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', (e) => {
+                const currentY = e.touches[0].clientY;
+                const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                
+                // Prevent pull-to-refresh when at top and pulling down
+                if (scrollTop === 0 && currentY > startY) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Optimize scroll behavior
+            document.body.style.webkitOverflowScrolling = 'touch';
+            document.body.style.overscrollBehavior = 'contain';
+            
+            // Reduce sync frequency on mobile
+            if (this.syncInterval) {
+                clearInterval(this.syncInterval);
+                this.syncInterval = setInterval(() => {
+                    this.intelligentSync();
+                }, CONFIG.POLLING_INTERVAL * 2); // Double the interval on mobile
+            }
+            
+            console.log('iOS optimizations applied');
+        }
     }
     
     async intelligentSync() {

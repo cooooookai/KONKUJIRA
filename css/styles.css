@@ -1886,6 +1886,306 @@ endations {
     flex-wrap: wrap;
 }
 
+/* Date Details Modal */
+.date-details-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.date-details-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.date-details-modal.closing {
+    opacity: 0;
+}
+
+.date-details-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.date-details-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.date-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.date-details-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.date-details-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.date-details-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.date-details-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+}
+
+.details-section {
+    margin-bottom: 2rem;
+}
+
+.details-section:last-child {
+    margin-bottom: 0;
+}
+
+.details-section h4 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+/* Events List */
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.event-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.event-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+.event-time {
+    color: #667eea;
+    font-weight: 500;
+    font-family: monospace;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.event-creator {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+/* Availability List */
+.availability-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.member-availability {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.member-name-header {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.member-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.availability-slot {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    background: white;
+    transition: transform 0.2s ease;
+}
+
+.availability-slot:hover {
+    transform: translateX(4px);
+}
+
+.availability-slot.status-good {
+    border-left-color: #27ae60;
+    background: linear-gradient(90deg, rgba(39, 174, 96, 0.05), white);
+}
+
+.availability-slot.status-ok {
+    border-left-color: #f39c12;
+    background: linear-gradient(90deg, rgba(243, 156, 18, 0.05), white);
+}
+
+.availability-slot.status-bad {
+    border-left-color: #e74c3c;
+    background: linear-gradient(90deg, rgba(231, 76, 60, 0.05), white);
+}
+
+.slot-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.status-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.status-good .status-icon {
+    color: #27ae60;
+}
+
+.status-ok .status-icon {
+    color: #f39c12;
+}
+
+.status-bad .status-icon {
+    color: #e74c3c;
+}
+
+.status-text {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.slot-time {
+    font-family: monospace;
+    color: #667eea;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.slot-description {
+    color: #666;
+    font-size: 0.9rem;
+    font-style: italic;
+    background: rgba(102, 126, 234, 0.05);
+    padding: 0.5rem;
+    border-radius: 6px;
+    border-left: 2px solid #667eea;
+}
+
+/* Details Actions */
+.details-actions {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.add-availability-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.add-availability-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.add-availability-btn:active {
+    transform: translateY(0);
+}
+
+/* iPhone Optimizations */
 @media (max-width: 480px) {
     .header-buttons {
         gap: 4px;
@@ -1911,5 +2211,89 @@ endations {
     
     .band-logo {
         gap: 0.4rem;
+    }
+    
+    /* Date Details Modal Mobile */
+    .date-details-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .date-details-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .date-details-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .date-details-body {
+        padding: 1rem 1.5rem;
+    }
+    
+    .event-item {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    
+    .event-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1.3rem;
+    }
+    
+    .member-availability {
+        padding: 0.75rem;
+    }
+    
+    .availability-slot {
+        padding: 0.5rem;
+    }
+}
+
+/* Prevent pull-to-refresh on iOS */
+body {
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Disable iOS bounce effect */
+html, body {
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+#app {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Improve touch targets for iPhone */
+@media (max-width: 768px) {
+    .fc-button {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 8px 12px;
+    }
+    
+    .fc-daygrid-day {
+        min-height: 44px;
+    }
+    
+    .tab-btn {
+        min-height: 48px;
+        padding: 12px 16px;
+    }
+    
+    .status-btn {
+        min-height: 60px;
+        padding: 12px;
     }
 }
