@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最终精简设计 - KONKUJIRA Band Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    
+    <style>
+        .demo-info {
+            background: var(--light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin: 0.5rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        
+        .improvements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .improvement-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: var(--radius);
+            border-left: 3px solid var(--accent);
+        }
+        
+        .improvement-item h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .improvement-item p {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0;
+        }
+        
+        .status-demo {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+        }
+        
+        .status-symbol {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">🎵</div>
+                    <div class="logo-text">KONKUJIRA</div>
+                </div>
+                <button id="settings-button" class="settings-btn">⚙️</button>
+            </div>
+        </header>
+        
+        <main>
+            <div class="demo-info">
+                <h2>🎯 最终精简设计</h2>
+                <p>完全按照要求优化的极简日历界面</p>
+                
+                <div class="improvements-grid">
+                    <div class="improvement-item">
+                        <h4>✅ 删除列表功能</h4>
+                        <p>只保留日历视图，去除月/列表切换</p>
+                    </div>
+                    <div class="improvement-item">
+                        <h4>✅ 日历占主要位置</h4>
+                        <p>全屏显示，最大化日历空间</p>
+                    </div>
+                    <div class="improvement-item">
+                        <h4>✅ 清晰日期数字</h4>
+                        <p>大号数字，白色背景，易于识别</p>
+                    </div>
+                    <div class="improvement-item">
+                        <h4>✅ 精简布局</h4>
+                        <p>无用户名，无编号，只保留核心信息</p>
+                    </div>
+                    <div class="improvement-item">
+                        <h4>✅ 常驻状态符号</h4>
+                        <p>4个成员状态始终显示在日期中</p>
+                    </div>
+                    <div class="improvement-item">
+                        <h4>✅ 新增详情页面</h4>
+                        <p>点击日期查看每个成员的详细信息</p>
+                    </div>
+                </div>
+                
+                <h3>📊 状态符号说明</h3>
+                <div class="status-demo">
+                    <div class="status-item">
+                        <span class="status-symbol" style="color: var(--success);">○</span>
+                        <span>空闲</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-symbol" style="color: var(--warning);">△</span>
+                        <span>可调整</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-symbol" style="color: var(--danger);">×</span>
+                        <span>忙碌</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-symbol" style="color: #6c757d;">−</span>
+                        <span>未填写</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="calendar"></div>
+        </main>
+        
+        <!-- Demo Drawer -->
+        <div id="drawer" class="drawer">
+            <div class="drawer-content">
+                <div class="drawer-header">
+                    <h2>2025年12月15日</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                
+                <div class="drawer-tabs">
+                    <button class="tab-btn active">空き状況</button>
+                    <button class="tab-btn">イベント</button>
+                    <button class="tab-btn">詳細</button>
+                </div>
+                
+                <div style="padding: 1.5rem;">
+                    <p style="text-align: center; color: #666;">
+                        新增的详情页面可以查看每个成员的状态和时间范围
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <script>
+        // Initialize final design demo
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                },
+                events: [
+                    {
+                        title: '練習 14:00',
+                        start: '2025-12-15'
+                    },
+                    {
+                        title: 'ライブ 19:00',
+                        start: '2025-12-20'
+                    }
+                ],
+                dateClick: function(info) {
+                    // Show demo drawer
+                    const drawer = document.getElementById('drawer');
+                    drawer.classList.add('open');
+                    
+                    // Close on backdrop click
+                    drawer.addEventListener('click', function(e) {
+                        if (e.target === drawer) {
+                            drawer.classList.remove('open');
+                        }
+                    });
+                    
+                    // Close button
+                    drawer.querySelector('.close-btn').onclick = function() {
+                        drawer.classList.remove('open');
+                    };
+                },
+                eventDidMount: function(info) {
+                    // Add member status grids to all days
+                    setTimeout(() => {
+                        const dayCells = document.querySelectorAll('.fc-daygrid-day');
+                        dayCells.forEach((cell, index) => {
+                            if (!cell.querySelector('.member-status-grid')) {
+                                const grid = document.createElement('div');
+                                grid.className = 'member-status-grid';
+                                
+                                const members = [
+                                    { color: 'var(--cokai)', status: ['○', '△', '×', '−'][Math.floor(Math.random() * 4)] },
+                                    { color: 'var(--yusuke)', status: ['○', '△', '×', '−'][Math.floor(Math.random() * 4)] },
+                                    { color: 'var(--zen)', status: ['○', '△', '×', '−'][Math.floor(Math.random() * 4)] },
+                                    { color: 'var(--yamchi)', status: ['○', '△', '×', '−'][Math.floor(Math.random() * 4)] }
+                                ];
+                                
+                                members.forEach(member => {
+                                    const memberCell = document.createElement('div');
+                                    memberCell.className = 'member-status-cell';
+                                    memberCell.style.background = member.color;
+                                    memberCell.style.color = 'white';
+                                    memberCell.textContent = member.status;
+                                    memberCell.style.fontSize = '14px';
+                                    memberCell.style.fontWeight = '600';
+                                    memberCell.style.display = 'flex';
+                                    memberCell.style.alignItems = 'center';
+                                    memberCell.style.justifyContent = 'center';
+                                    memberCell.style.borderRadius = '4px';
+                                    memberCell.style.cursor = 'pointer';
+                                    memberCell.style.transition = 'all 0.15s ease';
+                                    
+                                    memberCell.addEventListener('mouseenter', function() {
+                                        this.style.transform = 'scale(1.05)';
+                                    });
+                                    
+                                    memberCell.addEventListener('mouseleave', function() {
+                                        this.style.transform = 'scale(1)';
+                                    });
+                                    
+                                    grid.appendChild(memberCell);
+                                });
+                                
+                                cell.appendChild(grid);
+                            }
+                        });
+                    }, 100);
+                }
+            });
+            
+            calendar.render();
+        });
+    </script>
+</body>
+</html>

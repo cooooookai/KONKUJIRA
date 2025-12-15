@@ -62,6 +62,7 @@ class DrawerManager {
         // Tab buttons
         const availabilityTab = document.getElementById('availability-tab');
         const eventTab = document.getElementById('event-tab');
+        const detailsTab = document.getElementById('details-tab');
         
         if (availabilityTab) {
             availabilityTab.addEventListener('click', () => this.switchTab('availability'));
@@ -69,6 +70,10 @@ class DrawerManager {
         
         if (eventTab) {
             eventTab.addEventListener('click', () => this.switchTab('event'));
+        }
+        
+        if (detailsTab) {
+            detailsTab.addEventListener('click', () => this.switchTab('details'));
         }
         
         // Prevent drawer content clicks from closing drawer
@@ -793,22 +798,168 @@ class DrawerManager {
         // Update tab buttons
         const availabilityTab = document.getElementById('availability-tab');
         const eventTab = document.getElementById('event-tab');
+        const detailsTab = document.getElementById('details-tab');
         
-        if (availabilityTab && eventTab) {
+        if (availabilityTab && eventTab && detailsTab) {
             availabilityTab.classList.toggle('active', tab === 'availability');
             eventTab.classList.toggle('active', tab === 'event');
+            detailsTab.classList.toggle('active', tab === 'details');
         }
         
         // Update form visibility
         const availabilityForm = document.getElementById('availability-form');
         const eventForm = document.getElementById('event-form');
+        const detailsForm = document.getElementById('details-form');
         
-        if (availabilityForm && eventForm) {
+        if (availabilityForm && eventForm && detailsForm) {
             availabilityForm.classList.toggle('hidden', tab !== 'availability');
             eventForm.classList.toggle('hidden', tab !== 'event');
+            detailsForm.classList.toggle('hidden', tab !== 'details');
+        }
+        
+        // Load details if switching to details tab
+        if (tab === 'details' && this.currentDate) {
+            this.loadDateDetails(this.currentDate);
         }
     }
     
+    async loadDateDetails(dateStr) {
+        const detailsForm = document.getElementById('details-form');
+        if (!detailsForm) return;
+        
+        try {
+            // Show loading
+            detailsForm.innerHTML = '<div class="loading-details">詳細を読み込み中...</div>';
+            
+            // Get all members' data for this date
+            const members = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI'];
+            const memberColors = {
+                'COKAI': 'var(--cokai)',
+                'YUSUKE': 'var(--yusuke)', 
+                'ZEN': 'var(--zen)',
+                'YAMCHI': 'var(--yamchi)'
+            };
+            
+            const originalNickname = storage.getNickname();
+            const allMemberData = [];
+            
+            for (const memberName of members) {
+                try {
+                    storage.setNickname(memberName);
+                    const memberData = await apiClient.getAvailability(dateStr, dateStr);
+                    
+                    if (memberData && memberData.data && memberData.data.length > 0) {
+                        const dayData = memberData.data.filter(item => {
+                            const itemDate = new Date(item.start_time).toISOString().split('T')[0];
+                            return itemDate === dateStr;
+                        });
+                        
+                        allMemberData.push({
+                            name: memberName,
+                            color: memberColors[memberName],
+                            data: dayData
+                        });
+                    } else {
+                        allMemberData.push({
+                            name: memberName,
+                            color: memberColors[memberName],
+                            data: []
+                        });
+                    }
+                } catch (error) {
+                    console.warn(`Failed to load data for ${memberName}:`, error);
+                    allMemberData.push({
+                        name: memberName,
+                        color: memberColors[memberName],
+                        data: []
+                    });
+                }
+            }
+            
+            // Restore original nickname
+            if (originalNickname) {
+                storage.setNickname(originalNickname);
+            }
+            
+            // Render details
+            this.renderDateDetails(detailsForm, dateStr, allMemberData);
+            
+        } catch (error) {
+            console.error('Failed to load date details:', error);
+            detailsForm.innerHTML = '<div class="error-details">詳細の読み込みに失敗しました</div>';
+        }
+    }
+    
+    renderDateDetails(container, dateStr, memberData) {
+        const date = new Date(dateStr);
+        const formattedDate = date.toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'long', 
+            day: 'numeric',
+            weekday: 'long'
+        });
+        
+        let html = `
+            <div class="details-header">
+                <h3>${formattedDate}</h3>
+            </div>
+            <div class="details-content">
+        `;
+        
+        memberData.forEach(member => {
+            const statusIcon = member.data.length > 0 ? 
+                (member.data[0].status === 'good' ? '○' :
+                 member.data[0].status === 'ok' ? '△' : '×') : '−';
+            
+            const statusText = member.data.length > 0 ?
+                (member.data[0].status === 'good' ? '空いている' :
+                 member.data[0].status === 'ok' ? '調整可能' : '空いていない') : '未登録';
+            
+            html += `
+                <div class="member-detail-card">
+                    <div class="member-detail-header">
+                        <div class="member-status-icon" style="background: ${member.color}; color: white;">
+                            ${statusIcon}
+                        </div>
+                        <div class="member-detail-info">
+                            <div class="member-detail-name">${member.name}</div>
+                            <div class="member-detail-status">${statusText}</div>
+                        </div>
+                    </div>
+            `;
+            
+            if (member.data.length > 0) {
+                const item = member.data[0];
+                const startTime = new Date(item.start_time).toLocaleTimeString('ja-JP', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const endTime = new Date(item.end_time).toLocaleTimeString('ja-JP', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                html += `
+                    <div class="member-detail-body">
+                        <div class="time-range">${startTime} - ${endTime}</div>
+                        ${item.description ? `<div class="member-description">${item.description}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="member-detail-body">
+                        <div class="no-data">この日の予定は登録されていません</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
     resetForms() {
         // Reset availability form
         const availForm = document.getElementById('availability-form');
