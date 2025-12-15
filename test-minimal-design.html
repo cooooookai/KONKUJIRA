@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简设计 - KONKUJIRA Band Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    
+    <style>
+        .design-info {
+            background: var(--light);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin: 1.5rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        
+        .design-info h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border-left: 4px solid var(--accent);
+        }
+        
+        .feature-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .color-demo {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .color-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .cokai-demo { background: var(--cokai); }
+        .yusuke-demo { background: var(--yusuke); }
+        .zen-demo { background: var(--zen); }
+        .yamchi-demo { background: var(--yamchi); }
+        
+        .demo-calendar-day {
+            background: var(--light);
+            border: 1px solid #e9ecef;
+            border-radius: var(--radius);
+            padding: 0.5rem;
+            margin: 1rem auto;
+            width: 120px;
+            height: 100px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+        
+        .demo-day-number {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--primary);
+        }
+        
+        .demo-event {
+            position: absolute;
+            top: 28px;
+            left: 6px;
+            right: 6px;
+            font-size: 9px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .demo-grid {
+            position: absolute;
+            bottom: 6px;
+            left: 6px;
+            right: 6px;
+            height: 32px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 2px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .demo-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">🎵</div>
+                    <div class="logo-text">KONKUJIRA</div>
+                </div>
+                <button id="settings-button" class="settings-btn">⚙️</button>
+            </div>
+        </header>
+        
+        <main>
+            <div class="design-info">
+                <h2>🎯 极简高级设计</h2>
+                <p>重新设计的KONKUJIRA乐队日历，专注于简约、实用和高级感</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>🎨 统一配色</h4>
+                        <p>简约的色彩方案，专业而不失活力</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📱 极简头部</h4>
+                        <p>只保留logo和设置，去除冗余按钮</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📊 常态统计</h4>
+                        <p>自动显示成员状态统计，无需手动开启</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎯 紧凑布局</h4>
+                        <p>手机友好，用颜色代替文字标签</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔧 修复弹窗</h4>
+                        <p>居中显示，完整可见，易于操作</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>✨ 高级感</h4>
+                        <p>精致的阴影和圆角，现代化设计语言</p>
+                    </div>
+                </div>
+                
+                <h3>🎨 成员配色方案</h3>
+                <div class="color-demo">
+                    <div class="color-item">
+                        <div class="color-circle cokai-demo">○</div>
+                        <span>COKAI</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle yusuke-demo">△</div>
+                        <span>YUSUKE</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle zen-demo">×</div>
+                        <span>ZEN</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle yamchi-demo">?</div>
+                        <span>YAMCHI</span>
+                    </div>
+                </div>
+                
+                <h3>📅 日期格子演示</h3>
+                <div class="demo-calendar-day">
+                    <div class="demo-day-number">15</div>
+                    <div class="demo-event">練習 14:00</div>
+                    <div class="demo-grid">
+                        <div class="demo-cell cokai-demo">○</div>
+                        <div class="demo-cell yusuke-demo">△</div>
+                        <div class="demo-cell zen-demo">×</div>
+                        <div class="demo-cell yamchi-demo">○</div>
+                    </div>
+                </div>
+                
+                <p style="color: #666; font-size: 0.9rem; margin-top: 1rem;">
+                    ○ 空闲 | △ 可调整 | × 忙碌 | ? 未登录
+                </p>
+            </div>
+            
+            <div id="calendar"></div>
+        </main>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <script>
+        // Initialize demo calendar
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                events: [
+                    {
+                        title: '練習 14:00',
+                        start: '2025-12-15',
+                        backgroundColor: '#2c3e50',
+                        borderColor: '#2c3e50'
+                    },
+                    {
+                        title: 'ライブ 19:00',
+                        start: '2025-12-20',
+                        backgroundColor: '#2c3e50',
+                        borderColor: '#2c3e50'
+                    }
+                ],
+                dateClick: function(info) {
+                    alert(`点击日期: ${info.dateStr}\n\n新的极简设计特色:\n• 统一简约的配色方案\n• 紧凑的4分格成员显示\n• 修复的居中弹窗\n• 常态化的统计显示`);
+                },
+                eventDidMount: function(info) {
+                    // Add member status grids to demo
+                    setTimeout(() => {
+                        const dayCells = document.querySelectorAll('.fc-daygrid-day');
+                        dayCells.forEach((cell, index) => {
+                            if (!cell.querySelector('.member-status-grid') && index < 15) {
+                                const grid = document.createElement('div');
+                                grid.className = 'member-status-grid';
+                                
+                                const statuses = ['○', '△', '×', '?'];
+                                const colors = ['var(--cokai)', 'var(--yusuke)', 'var(--zen)', 'var(--yamchi)'];
+                                
+                                for (let i = 0; i < 4; i++) {
+                                    const memberCell = document.createElement('div');
+                                    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                                    memberCell.className = 'member-status-cell';
+                                    memberCell.style.background = colors[i];
+                                    memberCell.style.color = 'white';
+                                    memberCell.textContent = randomStatus;
+                                    memberCell.title = `成员 ${i + 1} - ${randomStatus === '○' ? '空闲' : randomStatus === '△' ? '可调整' : randomStatus === '×' ? '忙碌' : '未登录'}`;
+                                    
+                                    memberCell.addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        alert(`成员状态: ${memberCell.title}\n\n极简设计让信息更加清晰直观！`);
+                                    });
+                                    
+                                    grid.appendChild(memberCell);
+                                }
+                                
+                                cell.appendChild(grid);
+                            }
+                        });
+                    }, 100);
+                }
+            });
+            
+            calendar.render();
+        });
+    </script>
+</body>
+</html>

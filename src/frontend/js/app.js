@@ -118,16 +118,6 @@ class BandSyncCalendar {
         
 
         
-        // Holiday button
-        const holidayButton = document.getElementById('holiday-button');
-        if (holidayButton) {
-            holidayButton.addEventListener('click', () => {
-                if (typeof holidayDisplay !== 'undefined') {
-                    holidayDisplay.toggle();
-                }
-            });
-        }
-        
         // Settings button
         const settingsButton = document.getElementById('settings-button');
         if (settingsButton) {
@@ -137,6 +127,9 @@ class BandSyncCalendar {
                 }
             });
         }
+        
+        // Enable stats overlay by default
+        this.enableStatsOverlay();
     }
     
     startSynchronization() {
@@ -240,6 +233,18 @@ class BandSyncCalendar {
             }
             
             console.log('iOS optimizations applied');
+        }
+    }
+    
+    /**
+     * Enable stats overlay by default
+     */
+    enableStatsOverlay() {
+        if (typeof statsOverlay !== 'undefined') {
+            // Auto-enable stats display
+            setTimeout(() => {
+                statsOverlay.show();
+            }, 1000);
         }
     }
     
