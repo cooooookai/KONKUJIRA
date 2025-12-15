@@ -117,18 +117,312 @@ class CalendarManager {
             return;
         }
         
-        // Check if user has nickname set
-        if (!storage.getNickname()) {
-            this.showError(CONFIG.ERROR_MESSAGES.NICKNAME_REQUIRED);
-            return;
+        // Show date details modal first (if there's data to show)
+        this.showDateDetails(clickedDate).then(hasData => {
+            // If no data exists and user has nickname, open drawer for input
+            if (!hasData && storage.getNickname()) {
+                if (typeof window.openDrawer === 'function') {
+                    window.openDrawer(clickedDate);
+                } else {
+                    console.warn('Drawer function not available');
+                }
+            } else if (!hasData && !storage.getNickname()) {
+                this.showError(CONFIG.ERROR_MESSAGES.NICKNAME_REQUIRED);
+            }
+        });
+    }
+    
+    /**
+     * Show detailed information for a specific date
+     */
+    async showDateDetails(dateStr) {
+        try {
+            // Get all members' availability for this date
+            const allMembersData = await this.getAllMembersAvailabilityForDate(dateStr);
+            
+            // Get events for this date
+            const eventsData = await this.getEventsForDate(dateStr);
+            
+            // If no data exists, return false
+            if (allMembersData.length === 0 && eventsData.length === 0) {
+                return false;
+            }
+            
+            // Show the date details modal
+            this.displayDateDetailsModal(dateStr, allMembersData, eventsData);
+            return true;
+            
+        } catch (error) {
+            console.error('Error loading date details:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Get all members' availability for a specific date
+     */
+    async getAllMembersAvailabilityForDate(dateStr) {
+        const memberNames = ['COKAI', 'YUSUKE', 'ZEN', 'YAMCHI', 'テスト', 'USER'];
+        const allData = [];
+        const originalNickname = storage.getNickname();
+        
+        for (const memberName of memberNames) {
+            try {
+                // Temporarily set nickname to fetch each member's data
+                storage.setNickname(memberName);
+                
+                const memberData = await apiClient.getAvailability(dateStr, dateStr);
+                
+                if (memberData && memberData.data && memberData.data.length > 0) {
+                    memberData.data.forEach(item => {
+                        const itemDate = new Date(item.start_time).toISOString().split('T')[0];
+                        if (itemDate === dateStr) {
+                            allData.push({
+                                ...item,
+                                member_name: memberName
+                            });
+                        }
+                    });
+                }
+            } catch (error) {
+                console.warn(`Failed to load data for ${memberName}:`, error);
+            }
         }
         
-        // Open drawer for date input
-        if (typeof window.openDrawer === 'function') {
-            window.openDrawer(clickedDate);
-        } else {
-            console.warn('Drawer function not available');
+        // Restore original nickname
+        if (originalNickname) {
+            storage.setNickname(originalNickname);
         }
+        
+        return allData;
+    }
+    
+    /**
+     * Get events for a specific date
+     */
+    async getEventsForDate(dateStr) {
+        try {
+            const eventsData = await apiClient.getEvents(dateStr, dateStr);
+            if (eventsData && eventsData.data) {
+                return eventsData.data.filter(event => {
+                    const eventDate = new Date(event.start_time).toISOString().split('T')[0];
+                    return eventDate === dateStr;
+                });
+            }
+            return [];
+        } catch (error) {
+            console.warn('Failed to load events:', error);
+            return [];
+        }
+    }
+    
+    /**
+     * Display the date details modal
+     */
+    displayDateDetailsModal(dateStr, availabilityData, eventsData) {
+        // Create modal HTML
+        const modal = document.createElement('div');
+        modal.className = 'date-details-modal';
+        modal.innerHTML = this.createDateDetailsHTML(dateStr, availabilityData, eventsData);
+        
+        // Add to document
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        this.setupDateDetailsModalEvents(modal);
+        
+        // Show modal with animation
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+    
+    /**
+     * Create HTML for date details modal
+     */
+    createDateDetailsHTML(dateStr, availabilityData, eventsData) {
+        const date = new Date(dateStr);
+        const formattedDate = date.toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+        
+        let html = `
+            <div class="date-details-backdrop"></div>
+            <div class="date-details-content">
+                <div class="date-details-header">
+                    <h3>📅 ${formattedDate}</h3>
+                    <button class="date-details-close" aria-label="閉じる">&times;</button>
+                </div>
+                <div class="date-details-body">
+        `;
+        
+        // Events section
+        if (eventsData.length > 0) {
+            html += `
+                <div class="details-section">
+                    <h4>🎵 イベント</h4>
+                    <div class="events-list">
+            `;
+            
+            eventsData.forEach(event => {
+                const startTime = new Date(event.start_time).toLocaleTimeString('ja-JP', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const endTime = new Date(event.end_time).toLocaleTimeString('ja-JP', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const typeIcon = event.type === 'live' ? '🎤' : 
+                               event.type === 'rehearsal' ? '🎼' : '📝';
+                
+                html += `
+                    <div class="event-item">
+                        <div class="event-icon">${typeIcon}</div>
+                        <div class="event-info">
+                            <div class="event-title">${event.title}</div>
+                            <div class="event-time">${startTime} - ${endTime}</div>
+                            <div class="event-creator">作成者: ${event.created_by}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Availability section
+        if (availabilityData.length > 0) {
+            html += `
+                <div class="details-section">
+                    <h4>👥 メンバー空き状況</h4>
+                    <div class="availability-list">
+            `;
+            
+            // Group by member
+            const memberGroups = {};
+            availabilityData.forEach(item => {
+                if (!memberGroups[item.member_name]) {
+                    memberGroups[item.member_name] = [];
+                }
+                memberGroups[item.member_name].push(item);
+            });
+            
+            Object.entries(memberGroups).forEach(([memberName, items]) => {
+                html += `
+                    <div class="member-availability">
+                        <div class="member-name-header">${memberName}</div>
+                        <div class="member-slots">
+                `;
+                
+                items.forEach(item => {
+                    const startTime = new Date(item.start_time).toLocaleTimeString('ja-JP', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    const endTime = new Date(item.end_time).toLocaleTimeString('ja-JP', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    const statusIcon = item.status === 'good' ? '○' :
+                                     item.status === 'ok' ? '△' : '×';
+                    const statusText = item.status === 'good' ? '空いている' :
+                                     item.status === 'ok' ? '調整可能' : '空いていない';
+                    const statusClass = `status-${item.status}`;
+                    
+                    html += `
+                        <div class="availability-slot ${statusClass}">
+                            <div class="slot-status">
+                                <span class="status-icon">${statusIcon}</span>
+                                <span class="status-text">${statusText}</span>
+                            </div>
+                            <div class="slot-time">${startTime} - ${endTime}</div>
+                            ${item.description ? `<div class="slot-description">${item.description}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Add input button if user has nickname
+        if (storage.getNickname()) {
+            html += `
+                <div class="details-actions">
+                    <button class="add-availability-btn" data-date="${dateStr}">
+                        ➕ 空き状況を追加
+                    </button>
+                </div>
+            `;
+        }
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+    
+    /**
+     * Setup event listeners for date details modal
+     */
+    setupDateDetailsModalEvents(modal) {
+        // Close button
+        const closeBtn = modal.querySelector('.date-details-close');
+        closeBtn.addEventListener('click', () => this.closeDateDetailsModal(modal));
+        
+        // Backdrop click
+        const backdrop = modal.querySelector('.date-details-backdrop');
+        backdrop.addEventListener('click', () => this.closeDateDetailsModal(modal));
+        
+        // Add availability button
+        const addBtn = modal.querySelector('.add-availability-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', (e) => {
+                const dateStr = e.target.dataset.date;
+                this.closeDateDetailsModal(modal);
+                if (typeof window.openDrawer === 'function') {
+                    window.openDrawer(dateStr);
+                }
+            });
+        }
+        
+        // Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                this.closeDateDetailsModal(modal);
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
+    
+    /**
+     * Close date details modal
+     */
+    closeDateDetailsModal(modal) {
+        modal.classList.add('closing');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
     }
     
     /**

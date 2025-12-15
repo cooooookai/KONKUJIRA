@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日期详情测试 - KONKUJIRA Band Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    
+    <style>
+        .test-info {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .test-features {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            margin: 1rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .demo-button {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="band-logo">
+                        <div class="logo-container">
+                            <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="30" cy="30" r="28" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.8"/>
+                                <path d="M15 25 Q20 20, 25 25 T35 25 Q40 20, 45 25" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                <path d="M15 35 Q20 40, 25 35 T35 35 Q40 40, 45 35" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                <g transform="translate(30,30)">
+                                    <path d="M-8,-12 L-8,12 M-8,0 L8,-8 M-8,2 L8,12" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                </g>
+                                <defs>
+                                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#4facfe;stop-opacity:0.8" />
+                                        <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:0.8" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <div class="band-name">KONKUJIRA</div>
+                            <div class="app-name">日期详情功能测试</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-buttons">
+                    <button id="holiday-button" class="holiday-button">🎌 祝日</button>
+                    <button id="settings-button" class="settings-button">⚙️ 設定</button>
+                </div>
+            </div>
+            <div id="nickname-display">ユーザー: COKAI</div>
+        </header>
+        
+        <main>
+            <div class="test-info">
+                <h2>📅 日期详情功能测试</h2>
+                <p>点击日历上的任意日期来查看详细信息</p>
+            </div>
+            
+            <div class="test-features">
+                <h3>🎯 新功能特色：</h3>
+                <ul class="feature-list">
+                    <li>📱 <strong>点击日期显示详情</strong> - 查看所有成员的空闲状况和时间段描述</li>
+                    <li>🎵 <strong>事件信息展示</strong> - 显示该日期的所有乐队活动</li>
+                    <li>👥 <strong>成员状态一览</strong> - ○（空闲）△（可调整）×（忙碌）状态清晰显示</li>
+                    <li>📝 <strong>时间段描述</strong> - 显示成员输入的详细描述信息</li>
+                    <li>📱 <strong>iPhone优化</strong> - 解决下拉刷新干扰，优化触摸体验</li>
+                    <li>⚡ <strong>防抖同步</strong> - 减少不必要的网络请求</li>
+                </ul>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <button class="demo-button" onclick="showDemoModal()">
+                        🎭 演示日期详情模态框
+                    </button>
+                </div>
+            </div>
+            
+            <div id="calendar"></div>
+        </main>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <!-- Mock data and demo functions -->
+    <script>
+        // Mock data for demonstration
+        const mockAvailabilityData = [
+            {
+                member_name: 'COKAI',
+                start_time: '2025-12-15T14:00:00',
+                end_time: '2025-12-15T18:00:00',
+                status: 'good',
+                description: 'スタジオ練習可能です！新曲の練習をしましょう。'
+            },
+            {
+                member_name: 'YUSUKE',
+                start_time: '2025-12-15T15:00:00',
+                end_time: '2025-12-15T17:00:00',
+                status: 'ok',
+                description: '少し遅れるかもしれませんが参加できます。'
+            },
+            {
+                member_name: 'ZEN',
+                start_time: '2025-12-15T14:00:00',
+                end_time: '2025-12-15T16:00:00',
+                status: 'bad',
+                description: 'バイトがあるので参加できません。'
+            }
+        ];
+        
+        const mockEventsData = [
+            {
+                title: 'スタジオ練習',
+                start_time: '2025-12-15T15:00:00',
+                end_time: '2025-12-15T18:00:00',
+                type: 'rehearsal',
+                created_by: 'COKAI'
+            }
+        ];
+        
+        // Demo function to show modal
+        function showDemoModal() {
+            const modal = document.createElement('div');
+            modal.className = 'date-details-modal show';
+            modal.innerHTML = createDemoModalHTML();
+            document.body.appendChild(modal);
+            
+            // Add close functionality
+            modal.querySelector('.date-details-close').addEventListener('click', () => {
+                modal.classList.add('closing');
+                setTimeout(() => modal.remove(), 300);
+            });
+            
+            modal.querySelector('.date-details-backdrop').addEventListener('click', () => {
+                modal.classList.add('closing');
+                setTimeout(() => modal.remove(), 300);
+            });
+        }
+        
+        function createDemoModalHTML() {
+            return `
+                <div class="date-details-backdrop"></div>
+                <div class="date-details-content">
+                    <div class="date-details-header">
+                        <h3>📅 2025年12月15日（日曜日）</h3>
+                        <button class="date-details-close">&times;</button>
+                    </div>
+                    <div class="date-details-body">
+                        <div class="details-section">
+                            <h4>🎵 イベント</h4>
+                            <div class="events-list">
+                                <div class="event-item">
+                                    <div class="event-icon">🎼</div>
+                                    <div class="event-info">
+                                        <div class="event-title">スタジオ練習</div>
+                                        <div class="event-time">15:00 - 18:00</div>
+                                        <div class="event-creator">作成者: COKAI</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="details-section">
+                            <h4>👥 メンバー空き状況</h4>
+                            <div class="availability-list">
+                                <div class="member-availability">
+                                    <div class="member-name-header">COKAI</div>
+                                    <div class="member-slots">
+                                        <div class="availability-slot status-good">
+                                            <div class="slot-status">
+                                                <span class="status-icon">○</span>
+                                                <span class="status-text">空いている</span>
+                                            </div>
+                                            <div class="slot-time">14:00 - 18:00</div>
+                                            <div class="slot-description">スタジオ練習可能です！新曲の練習をしましょう。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="member-availability">
+                                    <div class="member-name-header">YUSUKE</div>
+                                    <div class="member-slots">
+                                        <div class="availability-slot status-ok">
+                                            <div class="slot-status">
+                                                <span class="status-icon">△</span>
+                                                <span class="status-text">調整可能</span>
+                                            </div>
+                                            <div class="slot-time">15:00 - 17:00</div>
+                                            <div class="slot-description">少し遅れるかもしれませんが参加できます。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="member-availability">
+                                    <div class="member-name-header">ZEN</div>
+                                    <div class="member-slots">
+                                        <div class="availability-slot status-bad">
+                                            <div class="slot-status">
+                                                <span class="status-icon">×</span>
+                                                <span class="status-text">空いていない</span>
+                                            </div>
+                                            <div class="slot-time">14:00 - 16:00</div>
+                                            <div class="slot-description">バイトがあるので参加できません。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="details-actions">
+                            <button class="add-availability-btn">
+                                ➕ 空き状況を追加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Initialize a simple calendar for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                dateClick: function(info) {
+                    showDemoModal();
+                }
+            });
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
