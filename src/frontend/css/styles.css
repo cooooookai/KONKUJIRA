@@ -795,14 +795,24 @@ main {
     transform: translateY(-1px) !important;
 }
 
-/* Calendar Header */
+/* Calendar Header - 星期显示 */
+.fc-col-header {
+    display: table-header-group !important;
+}
+
 .fc-col-header-cell {
-    background: #f8f9fa !important;
-    color: var(--primary) !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
     font-weight: 600 !important;
     border: none !important;
     padding: 0.75rem 0.5rem !important;
-    font-size: 0.9rem !important;
+    font-size: 0.95rem !important;
+    text-align: center !important;
+}
+
+.fc-col-header-cell-cushion {
+    color: white !important;
+    font-weight: 600 !important;
 }
 
 /* Calendar Days */
