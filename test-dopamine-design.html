@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多巴胺配色设计 - KONKUJIRA Band Calendar</title>
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.css" rel="stylesheet" />
+    
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+    
+    <style>
+        .design-showcase {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .color-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cokai-card {
+            background: linear-gradient(135deg, var(--cokai-blue), var(--cokai-blue-light));
+        }
+        
+        .yusuke-card {
+            background: linear-gradient(135deg, var(--yusuke-green), var(--yusuke-green-light));
+        }
+        
+        .zen-card {
+            background: linear-gradient(135deg, var(--zen-yellow), var(--zen-yellow-light));
+        }
+        
+        .yamchi-card {
+            background: linear-gradient(135deg, var(--yamchi-pink), var(--yamchi-pink-light));
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .demo-day {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1rem;
+            position: relative;
+            min-height: 120px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .demo-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .demo-day-number {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-event {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            left: 35px;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .feature-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .feature-list h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="band-logo">
+                        <div class="logo-container">
+                            <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="30" cy="30" r="28" fill="none" stroke="url(#logoGradient)" stroke-width="2" opacity="0.8"/>
+                                <path d="M15 25 Q20 20, 25 25 T35 25 Q40 20, 45 25" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                <path d="M15 35 Q20 40, 25 35 T35 35 Q40 40, 45 35" stroke="url(#waveGradient)" stroke-width="2" fill="none" opacity="0.6"/>
+                                <g transform="translate(30,30)">
+                                    <path d="M-8,-12 L-8,12 M-8,0 L8,-8 M-8,2 L8,12" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                </g>
+                                <defs>
+                                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#4facfe;stop-opacity:0.8" />
+                                        <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:0.8" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <div class="band-name">KONKUJIRA</div>
+                            <div class="app-name">多巴胺配色设计</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-buttons">
+                    <button id="holiday-button" class="holiday-button">🎌 祝日</button>
+                    <button id="settings-button" class="settings-button">⚙️ 設定</button>
+                </div>
+            </div>
+            <div id="nickname-display">ユーザー: COKAI</div>
+        </header>
+        
+        <main>
+            <div class="design-showcase">
+                <h2>🎨 多巴胺配色 4分格设计</h2>
+                <p>全新的视觉设计，让乐队日程管理更加直观和愉悦！</p>
+                
+                <div class="color-palette">
+                    <div class="color-card cokai-card">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎸</div>
+                        <div>COKAI</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">多巴胺蓝</div>
+                    </div>
+                    <div class="color-card yusuke-card">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🥁</div>
+                        <div>YUSUKE</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">活力绿</div>
+                    </div>
+                    <div class="color-card zen-card">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎹</div>
+                        <div>ZEN</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">阳光黄</div>
+                    </div>
+                    <div class="color-card yamchi-card">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎤</div>
+                        <div>YAMCHI</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">甜美粉</div>
+                    </div>
+                </div>
+                
+                <div class="feature-list">
+                    <h4>🚀 新设计特色</h4>
+                    <ul>
+                        <li>🎯 <strong>4分格布局</strong> - 每个日期直观显示4个成员状态</li>
+                        <li>🌈 <strong>多巴胺配色</strong> - 蓝绿黄粉，活力满满的视觉体验</li>
+                        <li>📱 <strong>响应式设计</strong> - 完美适配手机和桌面</li>
+                        <li>⚡ <strong>即时反馈</strong> - 点击成员格子查看详细信息</li>
+                        <li>🎵 <strong>事件优先</strong> - 活动信息显示在顶部</li>
+                        <li>✨ <strong>动画效果</strong> - 流畅的悬停和点击动画</li>
+                    </ul>
+                </div>
+                
+                <h3>📅 日期格子演示</h3>
+                <div class="demo-grid">
+                    <div class="demo-day">
+                        <div class="demo-day-number">15</div>
+                        <div class="demo-event">練習</div>
+                        <div class="member-status-grid">
+                            <div class="member-status-cell member-cokai status-available" data-member="COKAI" title="COKAI - 空いている"></div>
+                            <div class="member-status-cell member-yusuke status-flexible" data-member="YUSUKE" title="YUSUKE - 調整可能"></div>
+                            <div class="member-status-cell member-zen status-busy" data-member="ZEN" title="ZEN - 空いていない"></div>
+                            <div class="member-status-cell member-yamchi status-available" data-member="YAMCHI" title="YAMCHI - 空いている"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-day">
+                        <div class="demo-day-number">16</div>
+                        <div class="member-status-grid">
+                            <div class="member-status-cell member-cokai status-flexible" data-member="COKAI"></div>
+                            <div class="member-status-cell member-yusuke status-available" data-member="YUSUKE"></div>
+                            <div class="member-status-cell member-zen status-available" data-member="ZEN"></div>
+                            <div class="member-status-cell member-yamchi status-none" data-member="YAMCHI"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-day">
+                        <div class="demo-day-number">17</div>
+                        <div class="demo-event">ライブ</div>
+                        <div class="member-status-grid">
+                            <div class="member-status-cell member-cokai status-available" data-member="COKAI"></div>
+                            <div class="member-status-cell member-yusuke status-available" data-member="YUSUKE"></div>
+                            <div class="member-status-cell member-zen status-available" data-member="ZEN"></div>
+                            <div class="member-status-cell member-yamchi status-available" data-member="YAMCHI"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <p style="color: #666; font-style: italic;">
+                        ○ = 空いている　△ = 調整可能　× = 空いていない　? = 未登録
+                    </p>
+                </div>
+            </div>
+            
+            <div id="calendar"></div>
+        </main>
+    </div>
+    
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <script>
+        // Initialize demo calendar
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                events: [
+                    {
+                        title: 'スタジオ練習',
+                        start: '2025-12-15',
+                        backgroundColor: '#667eea',
+                        borderColor: '#667eea'
+                    },
+                    {
+                        title: 'ライブ',
+                        start: '2025-12-20',
+                        backgroundColor: '#e74c3c',
+                        borderColor: '#e74c3c'
+                    }
+                ],
+                dateClick: function(info) {
+                    alert(`日期: ${info.dateStr}\n\n新的4分格设计让你可以:\n• 一眼看到所有成员状态\n• 点击成员格子查看详情\n• 快速了解团队可用性`);
+                },
+                eventDidMount: function(info) {
+                    // Add member status grids to demo
+                    setTimeout(() => {
+                        const dayCells = document.querySelectorAll('.fc-daygrid-day');
+                        dayCells.forEach((cell, index) => {
+                            if (!cell.querySelector('.member-status-grid') && index < 10) {
+                                const grid = document.createElement('div');
+                                grid.className = 'member-status-grid';
+                                
+                                const statuses = ['status-available', 'status-flexible', 'status-busy', 'status-none'];
+                                const members = [
+                                    { name: 'COKAI', class: 'member-cokai' },
+                                    { name: 'YUSUKE', class: 'member-yusuke' },
+                                    { name: 'ZEN', class: 'member-zen' },
+                                    { name: 'YAMCHI', class: 'member-yamchi' }
+                                ];
+                                
+                                members.forEach((member, i) => {
+                                    const memberCell = document.createElement('div');
+                                    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                                    memberCell.className = `member-status-cell ${member.class} ${randomStatus}`;
+                                    memberCell.setAttribute('data-member', member.name);
+                                    memberCell.title = `${member.name} - クリックして詳細表示`;
+                                    
+                                    memberCell.addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        const statusText = randomStatus.includes('available') ? '空いている' :
+                                                         randomStatus.includes('flexible') ? '調整可能' :
+                                                         randomStatus.includes('busy') ? '空いていない' : '未登録';
+                                        alert(`${member.name}\n状態: ${statusText}\n\n多巴胺配色で視覚的に分かりやすく！`);
+                                    });
+                                    
+                                    grid.appendChild(memberCell);
+                                });
+                                
+                                cell.appendChild(grid);
+                            }
+                        });
+                    }, 100);
+                }
+            });
+            
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
