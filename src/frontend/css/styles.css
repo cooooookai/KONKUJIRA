@@ -914,38 +914,94 @@ main {
     color: white;
 }
 
-/* Status Symbols */
-.status-available::before {
+/* Status Symbols - Always colored by member */
+.member-cokai.status-available::before,
+.member-cokai.status-flexible::before,
+.member-cokai.status-busy::before,
+.member-cokai.status-none::before {
     content: '○';
+    color: white;
 }
 
-.status-flexible::before {
+.member-cokai.status-flexible::before {
     content: '△';
 }
 
-.status-busy::before {
+.member-cokai.status-busy::before {
     content: '×';
 }
 
-.status-none::before {
+.member-cokai.status-none::before {
     content: '−';
 }
 
+.member-yusuke.status-available::before,
+.member-yusuke.status-flexible::before,
+.member-yusuke.status-busy::before,
+.member-yusuke.status-none::before {
+    content: '○';
+    color: white;
+}
+
+.member-yusuke.status-flexible::before {
+    content: '△';
+}
+
+.member-yusuke.status-busy::before {
+    content: '×';
+}
+
+.member-yusuke.status-none::before {
+    content: '−';
+}
+
+.member-zen.status-available::before,
+.member-zen.status-flexible::before,
+.member-zen.status-busy::before,
+.member-zen.status-none::before {
+    content: '○';
+    color: white;
+}
+
+.member-zen.status-flexible::before {
+    content: '△';
+}
+
+.member-zen.status-busy::before {
+    content: '×';
+}
+
+.member-zen.status-none::before {
+    content: '−';
+}
+
+.member-yamchi.status-available::before,
+.member-yamchi.status-flexible::before,
+.member-yamchi.status-busy::before,
+.member-yamchi.status-none::before {
+    content: '○';
+    color: white;
+}
+
+.member-yamchi.status-flexible::before {
+    content: '△';
+}
+
+.member-yamchi.status-busy::before {
+    content: '×';
+}
+
+.member-yamchi.status-none::before {
+    content: '−';
+}
+
+/* Default status for unfilled - gray background with gray symbol */
 .status-none {
     background: #dee2e6 !important;
     color: #6c757d !important;
 }
 
-/* Member Labels */
-.member-status-cell::after {
-    content: attr(data-member);
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    font-size: 8px;
-    font-weight: 500;
-    opacity: 0.8;
-}
+/* Member Labels - REMOVED as per user request */
 
 /* Today Highlight */
 .fc-day-today {

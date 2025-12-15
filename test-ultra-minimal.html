@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra Minimal Calendar Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.css" rel="stylesheet" />
+    <link href="src/frontend/css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">🎵</div>
+                    <div class="logo-text">KONKUJIRA</div>
+                </div>
+                <button id="settings-button" class="settings-btn">⚙️</button>
+            </div>
+        </header>
+        
+        <main>
+            <div id="calendar"></div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js"></script>
+    
+    <script>
+        // Simple test to verify calendar display
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                headerToolbar: {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                },
+                height: 'auto',
+                events: []
+            });
+            
+            calendar.render();
+            
+            // Add member status grids to test display
+            setTimeout(() => {
+                const dayCells = document.querySelectorAll('.fc-daygrid-day');
+                dayCells.forEach((dayCell, index) => {
+                    if (index < 10) { // Only first 10 days for testing
+                        const dateStr = new Date().toISOString().split('T')[0];
+                        createTestMemberGrid(dayCell, dateStr);
+                    }
+                });
+            }, 500);
+        });
+        
+        function createTestMemberGrid(dayCell, dateStr) {
+            const grid = document.createElement('div');
+            grid.className = 'member-status-grid';
+            
+            const members = [
+                { name: 'COKAI', class: 'member-cokai' },
+                { name: 'YUSUKE', class: 'member-yusuke' },
+                { name: 'ZEN', class: 'member-zen' },
+                { name: 'YAMCHI', class: 'member-yamchi' }
+            ];
+            
+            members.forEach(member => {
+                const cell = document.createElement('div');
+                cell.className = `member-status-cell ${member.class} status-none`;
+                cell.setAttribute('data-date', dateStr);
+                cell.title = `${member.name}の空き状況`;
+                
+                grid.appendChild(cell);
+            });
+            
+            dayCell.appendChild(grid);
+        }
+    </script>
+</body>
+</html>

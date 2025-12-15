@@ -186,7 +186,7 @@ class CalendarManager {
     }
     
     /**
-     * Create member status grid for a day cell - Always visible
+     * Create member status grid for a day cell - Always visible with colored symbols
      */
     createMemberStatusGrid(dayCell, dateStr) {
         const grid = document.createElement('div');
@@ -202,9 +202,8 @@ class CalendarManager {
         members.forEach(member => {
             const cell = document.createElement('div');
             cell.className = `member-status-cell ${member.class} status-none`;
-            cell.setAttribute('data-member', member.name);
             cell.setAttribute('data-date', dateStr);
-            cell.title = `${member.name}`;
+            cell.title = `${member.name}の空き状況`;
             
             grid.appendChild(cell);
         });
@@ -247,10 +246,20 @@ class CalendarManager {
      * Update member status in grid based on availability data
      */
     updateMemberStatusInGrid(memberName, availabilityData) {
+        const memberClassMap = {
+            'COKAI': 'member-cokai',
+            'YUSUKE': 'member-yusuke', 
+            'ZEN': 'member-zen',
+            'YAMCHI': 'member-yamchi'
+        };
+        
+        const memberClass = memberClassMap[memberName];
+        if (!memberClass) return;
+        
         availabilityData.forEach(item => {
             const itemDate = new Date(item.start_time).toISOString().split('T')[0];
             const cell = document.querySelector(
-                `.member-status-cell[data-member="${memberName}"][data-date="${itemDate}"]`
+                `.${memberClass}[data-date="${itemDate}"]`
             );
             
             if (cell) {
@@ -275,8 +284,18 @@ class CalendarManager {
      * Show member details for a specific date
      */
     showMemberDetails(memberName, dateStr) {
+        const memberClassMap = {
+            'COKAI': 'member-cokai',
+            'YUSUKE': 'member-yusuke', 
+            'ZEN': 'member-zen',
+            'YAMCHI': 'member-yamchi'
+        };
+        
+        const memberClass = memberClassMap[memberName];
+        if (!memberClass) return;
+        
         const cell = document.querySelector(
-            `.member-status-cell[data-member="${memberName}"][data-date="${dateStr}"]`
+            `.${memberClass}[data-date="${dateStr}"]`
         );
         
         if (!cell) return;
